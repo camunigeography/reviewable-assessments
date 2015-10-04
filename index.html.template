@@ -1,0 +1,67 @@
+﻿<?php
+
+# Define the settings
+$settings = array (
+	'username' 				=> 'the_username',
+	'password'				=> 'the_password',
+	'userCallback'			=> 'getUser',		// Defined below
+	'collegesCallback'		=> 'getColleges',	// Defined below
+	'dosListCallback'		=> 'getDosList',	// Defined below
+	'directorUsername'		=> 'spqr1',
+);
+
+# Callback function to get details of a user
+function getUser ($databaseConnection, $userId)
+{
+	/*	
+		Must return a datastructure like this; this example shows a member of Academic-related staff, with the type shown and appropriate booleans:
+		
+		Array
+		(
+			[isUndergraduate] => 0
+			[isGraduate] => 0
+			[isStaff] => 1
+			[isStaffInternal] => 1
+			[staffType] => Academic-related staff
+			[course__JOIN__people__courses__reserved] => 
+		);
+	*/
+}
+
+# Callback function to get a list of Colleges
+function getColleges ($databaseConnection)
+{
+	/*	
+		Must return a datastructure like this:
+		
+		Array
+		(
+			[christs] => Christ's
+			[chu] => Churchill
+			...
+			[wolfson] => Wolfson
+		);
+	*/
+}
+
+# Function to get a list of Directors of Studies
+function getDosList ($databaseConnection)
+{
+	/*	
+		Must return a datastructure like this:
+		
+		Array
+		(
+			[abc123] => Dr Anton Callahan <abc123>
+			[sqpr1] => Dr Steve Rex <sqpr1>
+			...
+			[xyz1] => Dr Xavier Zachary <xyz1>
+		);
+	*/
+}
+
+# Load and run the example assessments class, which implements the reviewable assessments class
+require_once ('reviewable-assessments/exampleAssessments.php');
+new exampleAssessments ($settings);
+
+?>
