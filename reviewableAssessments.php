@@ -102,6 +102,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			CREATE TABLE IF NOT EXISTS `settings` (
 			  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Automatic key (ignored)',
 			  `peopleResponsible` TEXT COLLATE utf8_unicode_ci NULL COMMENT 'People responsible, for specified groupings',
+			  `additionalCompletionCc` TEXT COLLATE utf8_unicode_ci NULL COMMENT 'Additional e-mail addresses to Cc on completion, for specified groupings',
 			  `introductionHtml` text COLLATE utf8_unicode_ci COMMENT 'Front page introduction text',
 			  PRIMARY KEY (`id`)
 			) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Settings';
@@ -805,6 +806,21 @@ abstract class reviewableAssessments extends frontControllerApplication
 				$cc[] = $currentReviewer . "@{$this->settings['emailDomain']}";
 			}
 			$cc[] = $submission['seniorPerson'] . "@{$this->settings['emailDomain']}";	// Copy to DoS; this is done even at passup as a courtesy e.g. to make contact more easily with the Director
+		}
+		
+		# On final approval (only), if additional completion e-mail addresses are specified, and the type (e.g. 'Undergraduate') matches, add that address on completion
+		if ($reviewOutcome == 'approved') {
+			if (trim ($this->settings['additionalCompletionCc'])) {
+				$additionalCompletionCcAddresses = array ();
+				$additionalCompletionCc = preg_split ("/\s*\r?\n\t*\s*/", trim ($this->settings['additionalCompletionCc']));
+				foreach ($additionalCompletionCc as $additionalCompletionCcLine) {
+					list ($courseMoniker, $emailAddressString) = explode (',', $additionalCompletionCcLine, 2);
+					$additionalCompletionCcAddresses[$courseMoniker] = trim ($emailAddressString);	// e.g. 'Undergraduate' => 'foo@example.com, bar@example.com'
+				}
+				if (isSet ($additionalCompletionCcAddresses[$submission['type']])) {
+					$cc[] = $additionalCompletionCcAddresses[$submission['type']];
+				}
+			}
 		}
 		
 		# Add Cc if set
