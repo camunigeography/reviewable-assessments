@@ -1709,7 +1709,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			if ($submission['currentReviewer'] != $submission['seniorPerson']) {	// i.e. Copy in the DoS if a passup has previously happened
 				$headers .= "\r\nCc: " . $submission['seniorPerson'] . "@{$this->settings['emailDomain']}";
 			}
-//			application::utf8Mail ($to, $subject, wordwrap ($message), $headers);
+			application::utf8Mail ($to, $subject, wordwrap ($message), $headers);
 		}
 		
 		# Set a flash message
