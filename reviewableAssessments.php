@@ -218,6 +218,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 				'createArchivalVersion'			=> true,
 				'emailSubject'					=> 'changes needed',
 			),
+			#!# This appears even if the current director is reviewing
 			'passup'						=> array (
 				'setStatusTo'					=> 'submitted',
 				'icon' 							=> 'bullet_go',
