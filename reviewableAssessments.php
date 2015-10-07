@@ -1450,7 +1450,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			
 			# Create reopen/clone button if the status makes this available
 			if ($data['status'] == 'submitted') {
-				if ($this->userIsAdministrator) {
+				if ($this->userIsAdministrator || $data['currentReviewer'] == $this->user) {
 					$actions[] = "<a class=\"actions\" href=\"{$this->baseUrl}/submissions/{$data['id']}/review.html\"><img src=\"/images/icons/application_form_edit.png\" alt=\"\" class=\"icon\" /> Review this submission</a>";
 				}
 				if ($this->getArchivedVersions ($data['id'])) {
