@@ -770,7 +770,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 	
 	
 	# Function to e-mail the review outcome
-	private function emailReviewOutcome ($submissionUrl, $submission, $currentReviewer, $reviewOutcome, $comments)
+	private function emailReviewOutcome ($submissionUrl, $submission, $currentReviewer, $reviewOutcome /* i.e. the new status */, $comments)
 	{
 		# End if this review outcome type is set not to send an e-mail
 		if (!$this->reviewOutcomes[$reviewOutcome]['emailSubject']) {return;}
@@ -797,12 +797,18 @@ abstract class reviewableAssessments extends frontControllerApplication
 		# Construct the message details
 		$subject = ucfirst ($this->settings['description']) . " (#{$submission['id']}) review: " . $this->reviewOutcomes[$reviewOutcome]['emailSubject'];
 		$headers  = 'From: ' . ($loggedInReviewerName ? "{$loggedInReviewerName} <{$loggedInReviewerEmail}>" : $loggedInReviewerEmail);
+		
+		# Determine Cc
+		$cc = array ();
 		if ($currentReviewer != $submission['seniorPerson']) {	// i.e. Copy in the DoS if in passup
-			$cc = array ();
 			if ($reviewOutcome == 'passup') {	// On the specific passup event, copy in the main reviewer
 				$cc[] = $currentReviewer . "@{$this->settings['emailDomain']}";
 			}
 			$cc[] = $submission['seniorPerson'] . "@{$this->settings['emailDomain']}";	// Copy to DoS; this is done even at passup as a courtesy e.g. to make contact more easily with the Director
+		}
+		
+		# Add Cc if set
+		if ($cc) {
 			$headers .= "\r\nCc: " . implode (', ', $cc);
 		}
 		
@@ -1795,7 +1801,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			# For MPhil, the supervisor may be course-specific, dependent on the application settings; if so, force the setting; otherwise fall through to the generic Postgraduate behaviour below
 			case 'MPhil':
 				
-				# If the peopleResponse setting is defined, look for the MPhil courses; otherwise fall-through
+				# If the peopleResponsible setting is defined, look for the MPhil courses; otherwise fall-through
 				#!# This is potentially rather brittle, e.g. a space present or extension for other groupings
 				if ($this->settings['peopleResponsible']) {
 					
