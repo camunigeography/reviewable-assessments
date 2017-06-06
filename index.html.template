@@ -7,7 +7,6 @@ $settings = array (
 	'userCallback'			=> 'getUser',		// Defined below
 	'collegesCallback'		=> 'getColleges',	// Defined below
 	'dosListCallback'		=> 'getDosList',	// Defined below
-	'directorUsername'		=> 'spqr1',
 );
 
 # Callback function to get details of a user

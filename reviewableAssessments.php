@@ -25,7 +25,6 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'usersAutocomplete'		=> false,		// URL of an autocomplete JSON endpoint
 			'emailDomain'			=> 'cam.ac.uk',
 			'directorDescription'	=> NULL,		// E.g. 'XYZ Officer',
-			'directorUsername'		=> NULL,		// NB Only used for display purposes to show their e-mail address when Director is the responsible person
 			'pdfStylesheets'		=> array (),
 			'stage2Info'			=> false,		// To enable stage 2 info, define a string describing the information to be added, e.g. 'additional information'
 		);
@@ -101,6 +100,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			
 			CREATE TABLE IF NOT EXISTS `settings` (
 			  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Automatic key (ignored)',
+			  `directorUsername` VARCHAR(255) COLLATE utf8_unicode_ci NOT NULL COMMENT 'Director username',
 			  `peopleResponsible` TEXT COLLATE utf8_unicode_ci NULL COMMENT 'People responsible, for specified groupings',
 			  `additionalCompletionCc` TEXT COLLATE utf8_unicode_ci NULL COMMENT 'Additional e-mail addresses to Cc on completion, for specified groupings',
 			  `introductionHtml` text COLLATE utf8_unicode_ci COMMENT 'Front page introduction text',
