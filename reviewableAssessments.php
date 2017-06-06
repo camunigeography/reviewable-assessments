@@ -104,6 +104,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			  `peopleResponsible` TEXT COLLATE utf8_unicode_ci NULL COMMENT 'People responsible, for specified groupings',
 			  `additionalCompletionCc` TEXT COLLATE utf8_unicode_ci NULL COMMENT 'Additional e-mail addresses to Cc on completion, for specified groupings',
 			  `introductionHtml` text COLLATE utf8_unicode_ci COMMENT 'Front page introduction text',
+			  `feedbackHtml` TEXT NULL COLLATE utf8_unicode_ci COMMENT 'Feedback page additional note',
 			  PRIMARY KEY (`id`)
 			) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Settings';
 			
@@ -2010,6 +2011,23 @@ abstract class reviewableAssessments extends frontControllerApplication
 		# Serve the CSV file
 		$query = "SELECT * FROM {$this->settings['database']}.{$this->settings['table']} ORDER BY id;";
 		$this->databaseConnection->serveCsv ($query, array (), $filenameBase = 'assessments');
+	}
+	
+	
+	# Function to override the feedback form to add a message if required
+	public function feedback ($id_ignored = NULL, $error_ignored = NULL, $echoHtml = true)
+	{
+		# Add message, if required
+		if (trim ($this->settings['feedbackHtml'])) {
+			echo "<div class=\"warningbox\">
+				<br />
+				{$this->settings['feedbackHtml']}
+				<br />
+			</div>";
+		}
+		
+		# Run the feedback form
+		parent::feedback ();
 	}
 }
 
