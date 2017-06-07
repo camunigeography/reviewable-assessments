@@ -1546,20 +1546,8 @@ abstract class reviewableAssessments extends frontControllerApplication
 		}
 		$submission = strtr ($template, $replacements);
 		
-/*
-		# Create a watermark
-		$watermark  = "\n<div id=\"watermark\">";
-		$watermark .= "\n<p>" . ucfirst ($this->settings['description']) . ": #" . htmlspecialchars ($data['id']) . "</p>";
-		$watermark .= "\n<p>" . htmlspecialchars ($data['name']) . "</p>";
-		$watermark .= "\n<p>" . htmlspecialchars ($data['description']) . "</p>";
-		$watermark .= "</div>";
-*/
-		
 		# Compile the template
-		// $html .= "\n<p class=\"printingwarning warning\"><strong>Please print this out in landscape format by pressing the landscape button.</strong></p>";
-//		$html .= $watermark;
 		$html .= $submission;
-		
 		# Return the HTML
 		return $html;
 	}
