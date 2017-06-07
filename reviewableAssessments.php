@@ -1365,7 +1365,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 	
 	
 	# Function to get the user's submissions
-	private function getSubmissions ($status = false, $sinceMonths = false, $reviewingMode = false)
+	private function getSubmissions ($status = false, $sinceMonths = false, $reviewingMode = false, $specificIds = array ())
 	{
 		# Start an array of conditions
 		$conditions = array ();
@@ -1400,6 +1400,20 @@ abstract class reviewableAssessments extends frontControllerApplication
 		# Since months
 		if ($sinceMonths) {
 			$conditions[] = "updatedAt >= DATE_SUB(CURDATE(), INTERVAL {$sinceMonths} MONTH)";
+		}
+		
+		# Specific IDs
+		#!# Currently this resets $conditions and $preparedStatementValues, so that $this->user is not injected above; need to refactor to make supply of $this->user explicit
+		if ($specificIds) {
+			$conditions = array ();
+			$preparedStatementValues = array ();
+			$sql = array ();
+			foreach ($specificIds as $index => $specificId) {
+				$token = 'id' . $index;
+				$sql[] = ':' . $token;
+				$preparedStatementValues[$token] = $specificId;
+			}
+			$conditions[] = 'id IN (' . implode (',', $sql) . ')';
 		}
 		
 		# Get the list
