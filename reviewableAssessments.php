@@ -1460,7 +1460,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 	}
 	
 	
-	# Function to view a submission
+	# Function to view a submission, effectively a wrapper to the submission renderer but which adds an actions UI, information box, etc.
 	private function viewSubmission ($data, $suppressHeader = false, $changes = array ())
 	{
 		# Start the HTML
@@ -1528,6 +1528,17 @@ abstract class reviewableAssessments extends frontControllerApplication
 		$colleges = $this->getColleges ();
 		$data['college'] = ($data['college'] ? $colleges[$data['college']] : false);
 		
+		# Render the submission into the template
+		$html .= $this->renderSubmission ($data, $htmlNoEntities, $changes);
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Function to render the submission into the template
+	private function renderSubmission ($data, $htmlNoEntities = array (), $changes = array ())
+	{
 		# Get the template
 		$template = $this->formTemplate ($data, $viewMode = true);
 		
@@ -1546,10 +1557,8 @@ abstract class reviewableAssessments extends frontControllerApplication
 		}
 		$submission = strtr ($template, $replacements);
 		
-		# Compile the template
-		$html .= $submission;
-		# Return the HTML
-		return $html;
+		# Return the submission
+		return $submission;
 	}
 	
 	
