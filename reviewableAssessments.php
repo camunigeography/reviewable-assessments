@@ -52,6 +52,13 @@ abstract class reviewableAssessments extends frontControllerApplication
 				'tab' => 'New',
 				'icon' => 'add',
 			),
+			'examples' => array (
+				'url' => 'examples/',
+				'tab' => 'Examplars',
+				'description' => false,
+				'icon' => 'page_white_stack',
+				'enableIf' => $this->settings['exemplars'],
+			),
 			'submissions' => array (		// Available to all users
 				'url' => 'submissions/',
 				'description' => false,
@@ -106,6 +113,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			  `additionalCompletionCc` TEXT COLLATE utf8_unicode_ci NULL COMMENT 'Additional e-mail addresses to Cc on completion, for specified groupings',
 			  `introductionHtml` text COLLATE utf8_unicode_ci COMMENT 'Front page introduction text',
 			  `feedbackHtml` TEXT NULL COLLATE utf8_unicode_ci COMMENT 'Feedback page additional note',
+			  `exemplars` TEXT NULL DEFAULT NULL COMMENT 'Exemplars (list of IDs, one per line)',
 			  PRIMARY KEY (`id`)
 			) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Settings';
 			
@@ -192,12 +200,22 @@ abstract class reviewableAssessments extends frontControllerApplication
 		# Define the internal fields that should not be made visible or editable by the user
 		$this->internalFields = array ('id', 'username', 'status', 'parentId', 'archivedVersion', 'currentReviewer', 'reviewOutcome', 'comments', 'stage2InfoRequired', 'updatedAt');
 		
+		# Define private data fields, used for hiding in examples mode
+		$this->privateDataFields = $this->privateDataFields ();
+		
 		# Define the review outcomes
 		$this->reviewOutcomes = $this->reviewOutcomes ();
 		
 		# Define statuses; the keys here must be kept in sync with the status field's ENUM specification
 		$this->statuses = $this->statuses ();
 		
+	}
+	
+	
+	# Function to define the private data fields, used for hiding in examples mode; this is overrideable by the form definition implementation
+	public function privateDataFields ()
+	{
+		return array ('name', 'email', 'college', 'seniorPerson');
 	}
 	
 	
@@ -2023,6 +2041,70 @@ abstract class reviewableAssessments extends frontControllerApplication
 		# Serve the CSV file
 		$query = "SELECT * FROM {$this->settings['database']}.{$this->settings['table']} ORDER BY id;";
 		$this->databaseConnection->serveCsv ($query, array (), $filenameBase = 'assessments');
+	}
+	
+	
+	# Example submissions
+	public function examples ($id)
+	{
+		# Get the examples
+		$ids = explode ("\n", str_replace ("\r\n", "\n", trim ($this->settings['exemplars'])));
+		$examples = $this->getSubmissions (false, false, false, $ids);
+		
+		# Show the listing of examples if no ID supplied
+		if (!$id) {
+			$html .= $this->examplesListing ($examples);
+			echo $html;
+			return false;
+		}
+		
+		# In examples mode, check the ID exists
+		if (!isSet ($examples[$id])) {
+			$html .= "\n<p>The ID you supplied is not valid. Please check the URL and try again.</p>";
+			echo $html;
+			return false;
+		}
+		$data = $examples[$id];
+		
+		# Show title
+		$html  = "\n<h2>" . ucfirst ($this->settings['description']) . ' form exemplar</h2>';
+		
+		# Hide private data fields
+		foreach ($data as $field => $value) {
+			if (in_array ($field, $this->privateDataFields)) {
+				$data[$field] = '[...]';
+			}
+		}
+		
+		# Show the form
+		$html .= $this->renderSubmission ($data);
+		
+		# Show the HTML
+		echo $html;
+	}
+	
+	
+	# Functino to create a listing of examples
+	private function examplesListing ($examples)
+	{
+		# Group by type
+		$examplesByType = application::regroup ($examples, 'type');
+		
+		# Compile the HTML
+		$html  = "\n<p>The following are some examples of good-quality submissions:</p>";
+		foreach ($this->settings['types'] as $type) {
+			if (isSet ($examplesByType[$type])) {
+				$html .= "\n<h3>" . htmlspecialchars ($type) . '</h3>';
+				$list = array ();
+				foreach ($examplesByType[$type] as $id => $submission) {
+					$list[] = "<a href=\"{$this->baseUrl}/examples/{$id}/\">" . htmlspecialchars ($submission['title']) . '</a>';
+				}
+				$html .= application::htmlUl ($list);
+			}
+		}
+		
+		# Return the HTML
+		return $html;
 	}
 	
 	
