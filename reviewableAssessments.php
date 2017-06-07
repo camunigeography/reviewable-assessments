@@ -27,6 +27,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'directorDescription'	=> NULL,		// E.g. 'XYZ Officer',
 			'pdfStylesheets'		=> array (),
 			'stage2Info'			=> false,		// To enable stage 2 info, define a string describing the information to be added, e.g. 'additional information'
+			'types'					=> array ('Undergraduate', 'MPhil', 'PhD', 'Research staff', 'Academic staff', 'Other'),	// In order of appearance in the form and for the exemplars listing
 		);
 		
 		# Return the defaults
@@ -117,7 +118,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			  `description` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
 			  `name` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT 'Your name',
 			  `email` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT 'Your email',
-			  `type` enum('Undergraduate','MPhil','PhD','Research staff','Academic staff','Other') COLLATE utf8_unicode_ci DEFAULT NULL COMMENT 'Position/course',
+			  `type` enum('" . implode ("','", $this->settings['types']) . "') COLLATE utf8_unicode_ci DEFAULT NULL COMMENT 'Position/course',
 			  `college` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT 'College',
 			  `seniorPerson` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT 'Person responsible',
 			  `currentReviewer` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT 'Current reviewer (initially same as seniorPerson, but a passup event can change this)',
