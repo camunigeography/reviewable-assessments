@@ -1515,12 +1515,12 @@ abstract class reviewableAssessments extends frontControllerApplication
 		$htmlNoEntities = array ();
 		
 		# Hyperlink the full name to Lookup
-		$data['name'] = "<a href=\"http://www.lookup.cam.ac.uk/person/crsid/{$data['username']}/\" target=\"_blank\">" . htmlspecialchars ($data['name']) . '</a>';
+		$data['name'] = "<a href=\"https://www.lookup.cam.ac.uk/person/crsid/{$data['username']}/\" target=\"_blank\">" . htmlspecialchars ($data['name']) . '</a>';
 		$htmlNoEntities[] = 'name';
 		
 		# Replace the responsible person's username with their name also
 		if ($userLookupData = camUniData::getLookupData ($data['seniorPerson'])) {
-			$data['seniorPerson'] = htmlspecialchars ($userLookupData['name']) . " &lt;<a href=\"http://www.lookup.cam.ac.uk/person/crsid/{$data['seniorPerson']}/\" target=\"_blank\">{$data['seniorPerson']}</a>&gt;";
+			$data['seniorPerson'] = htmlspecialchars ($userLookupData['name']) . " &lt;<a href=\"https://www.lookup.cam.ac.uk/person/crsid/{$data['seniorPerson']}/\" target=\"_blank\">{$data['seniorPerson']}</a>&gt;";
 			$htmlNoEntities[] = 'seniorPerson';
 		}
 		
