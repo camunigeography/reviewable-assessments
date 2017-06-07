@@ -1385,7 +1385,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			$preparedStatementValues['username'] = $this->user;
 		}
 		
-		# Determine the conditions
+		# Status
 		if ($status) {
 			if (is_array ($status)) {
 				$conditions[] = "status IN('" . implode ("','", $status) . "')";
@@ -1466,11 +1466,11 @@ abstract class reviewableAssessments extends frontControllerApplication
 		# Start the HTML
 		$html = '';
 		
-		# Start an actions list for a sidebar
-		$actions = array ();
-		
 		# Suppress the header if required
 		if (!$suppressHeader) {
+			
+			# Start an actions list for a sidebar
+			$actions = array ();
 			
 			# Create reopen/clone button if the status makes this available
 			if ($data['status'] == 'submitted') {
@@ -1505,8 +1505,11 @@ abstract class reviewableAssessments extends frontControllerApplication
 			$html .= $this->actionRequestedBox ($data);
 		}
 		
-		# Get the template
-		$template = $this->formTemplate ($data, $viewMode = true);
+		# Note if there are changes
+		if ($changes) {
+			$html .= "\n<p>Changes are marked <span class=\"changed\">highlighted like this</span> below.</p>";
+			$html .= "\n<hr />";
+		}
 		
 		# Start a list of fields which should not have entity conversion done
 		$htmlNoEntities = array ();
@@ -1515,21 +1518,18 @@ abstract class reviewableAssessments extends frontControllerApplication
 		$data['name'] = "<a href=\"http://www.lookup.cam.ac.uk/person/crsid/{$data['username']}/\" target=\"_blank\">" . htmlspecialchars ($data['name']) . '</a>';
 		$htmlNoEntities[] = 'name';
 		
-		# Replace the college database value with the visible text
-		$colleges = $this->getColleges ();
-		$data['college'] = ($data['college'] ? $colleges[$data['college']] : false);
-		
 		# Replace the responsible person's username with their name also
 		if ($userLookupData = camUniData::getLookupData ($data['seniorPerson'])) {
 			$data['seniorPerson'] = htmlspecialchars ($userLookupData['name']) . " &lt;<a href=\"http://www.lookup.cam.ac.uk/person/crsid/{$data['seniorPerson']}/\" target=\"_blank\">{$data['seniorPerson']}</a>&gt;";
 			$htmlNoEntities[] = 'seniorPerson';
 		}
 		
-		# Note if there are changes
-		if ($changes) {
-			$html .= "\n<p>Changes are marked <span class=\"changed\">highlighted like this</span> below.</p>";
-			$html .= "\n<hr />";
-		}
+		# Replace the college database value with the visible text
+		$colleges = $this->getColleges ();
+		$data['college'] = ($data['college'] ? $colleges[$data['college']] : false);
+		
+		# Get the template
+		$template = $this->formTemplate ($data, $viewMode = true);
 		
 		# Insert the values into the template
 		$replacements = array ();
