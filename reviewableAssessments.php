@@ -1962,7 +1962,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		
 		<a id="mainform"></a>
 		<h3>Description of this ' . $this->settings['description'] . '</h3>
-		<p>Submission ID: <strong>' . $idInfo . '</strong>.</p>
+		<p>Submission no.: <strong>' . $idInfo . '</strong>.</p>
 		<p>{description}</p>
 		
 		<h3>Section A &#8211; basic questions</h3>
@@ -2076,6 +2076,11 @@ abstract class reviewableAssessments extends frontControllerApplication
 			}
 		}
 		
+		# If present, use title field instead of description, as descriptions tend to include personal data
+		if (isSet ($data['title'])) {
+			$data['description'] = $data['title'];
+		}
+		
 		# Show the form
 		$html .= $this->renderSubmission ($data);
 		
@@ -2097,7 +2102,8 @@ abstract class reviewableAssessments extends frontControllerApplication
 				$html .= "\n<h3>" . htmlspecialchars ($type) . '</h3>';
 				$list = array ();
 				foreach ($examplesByType[$type] as $id => $submission) {
-					$list[] = "<a href=\"{$this->baseUrl}/examples/{$id}/\">" . htmlspecialchars ($submission['title']) . '</a>';
+					$title = (isSet ($submission['title']) ? $submission['title'] : $submission['description']);
+					$list[] = "<a href=\"{$this->baseUrl}/examples/{$id}/\">" . htmlspecialchars ($title) . '</a>';
 				}
 				$html .= application::htmlUl ($list);
 			}
