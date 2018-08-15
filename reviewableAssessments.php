@@ -133,7 +133,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			  
 			  {$specificFields}
 			  
-			  `confirmation` int(1) NOT NULL COMMENT 'Confirmation',
+			  `confirmation` int(1) NOT NULL DEFAULT '0' COMMENT 'Confirmation',
 			  `reviewOutcome` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT 'Review outcome',
 			  `comments` text COLLATE utf8_unicode_ci COMMENT 'Comments from administrator',
 			  `stage2InfoRequired` int(1) DEFAULT NULL COMMENT 'Stage 2 information required',
@@ -1304,10 +1304,15 @@ abstract class reviewableAssessments extends frontControllerApplication
 		$data['updatedAt'] = 'NOW()';	// Database library will convert to native function
 		
 		# Create a new database entry
-		$result = $this->databaseConnection->insert ($this->settings['database'], $this->settings['table'], $data);
-		$id = $this->databaseConnection->getLatestId ();
+		if (!$result = $this->databaseConnection->insert ($this->settings['database'], $this->settings['table'], $data)) {
+			$html = "<p class=\"warning\">An error occured when adding the new entry. Please contact the Webmaster.</p>";
+			// application::dumpData ($this->databaseConnection->error ());
+			echo $html;
+			return true;
+		}
 		
 		# Redirect to the created entry
+		$id = $this->databaseConnection->getLatestId ();
 		$redirectTo = "{$_SERVER['_SITE_URL']}{$this->baseUrl}/submissions/{$id}/";
 		$html = application::sendHeader (302, $redirectTo, true);
 		
