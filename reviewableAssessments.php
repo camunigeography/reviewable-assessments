@@ -18,6 +18,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'authentication'		=> true,
 			'administrators'		=> true,
 			'div'					=> 'reviewableassessments',
+			'tabUlClass'			=> 'tabsflat',
 			'description'			=> 'assessment',
 			'userCallback'			=> NULL,		// NB Currently only a simple public function name supported
 			'collegesCallback'		=> NULL,		// NB Currently only a simple public function name supported
