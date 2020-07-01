@@ -25,7 +25,7 @@
 	RewriteRule ^$applicationBaseUrl/(submissions|examples)/([0-9]+)$ $applicationBaseUrl/$1/$2/ [R]
 	# NB \2 is a backreference in the test
 	RewriteRule ^$applicationBaseUrl/(submissions)/([0-9]+)/assessment\2.pdf$ $applicationBaseUrl/index.html?action=$1&item=$2&export=pdf [L]
-	RewriteRule ^$applicationBaseUrl/(submissions)/([0-9]+)/(reopen|delete|clone|review|compare).html$ $applicationBaseUrl/index.html?action=$1&item=$2&do=$3 [L,QSA]
+	RewriteRule ^$applicationBaseUrl/(submissions)/([0-9]+)/(reopen|delete|clone|review|compare|reassign).html$ $applicationBaseUrl/index.html?action=$1&item=$2&do=$3 [L,QSA]
 	RewriteRule ^$applicationBaseUrl/(submissions)/([0-9]+)/version([1-9][0-9]*)/$ $applicationBaseUrl/index.html?action=$1&item=$2&version=$3 [L,QSA]
 	RewriteRule ^$applicationBaseUrl/(submissions)/([0-9]+)/version([1-9][0-9]*)$ $applicationBaseUrl/$1/$2/version$3/ [R]
 	RewriteRule ^$applicationBaseUrl/download.html$ $applicationBaseUrl/index.html?action=download [L]

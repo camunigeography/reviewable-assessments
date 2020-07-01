@@ -466,7 +466,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		# Determine the action
 		$action = 'show';
 		if (isSet ($_GET['do'])) {
-			$extraActions = array ('delete', 'clone', 'review', 'compare');
+			$extraActions = array ('delete', 'clone', 'review', 'compare', 'reassign');
 			if (!in_array ($_GET['do'], $extraActions)) {
 				$this->page404 ();
 				return false;
@@ -477,7 +477,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		# Check that the user has rights, or end
 		$userHasEditCloneDeleteRights = $this->userHasEditCloneDeleteRights ($submission['username']);
 		if (!$userHasEditCloneDeleteRights) {
-			$disallowedActions = array ('edit', 'clone', 'delete');
+			$disallowedActions = array ('edit', 'clone', 'delete', 'reassign');
 			if (in_array ($action, $disallowedActions)) {
 				$html .= "\n<p>You do not appear to have rights to {$action} the specified submission. Please check the URL and try again.</p>";
 				echo $html;
@@ -677,7 +677,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		}
 		
 		# Obtain the review, or end
-		if (!$reviewOutcome = $this->reviewForm ()) {
+		if (!$reviewOutcome = $this->reviewForm ($submission)) {
 			$html .= $this->viewSubmission ($submission, true);
 			return $html;
 		}
@@ -713,8 +713,16 @@ abstract class reviewableAssessments extends frontControllerApplication
 	
 	
 	# Function to create the review outcomes form
-	private function reviewForm ()
+	private function reviewForm ($submission)
 	{
+		# Start the HTML
+		$html = '';
+		
+		# If the user can reassign, show a link to the reassign page
+		if ($this->userCanReassign ($data)) {
+			$html .= "<p class=\"alignright\">Or <a class=\"submission\" href=\"{$this->baseUrl}/submissions/{$submission['id']}/reassign.html\"> reassign reviewer &hellip;</a></p>";
+		}
+		
 		# Filter the review outcomes to those available for the current user
 		$reviewOutcomes = array ();
 		foreach ($this->reviewOutcomes as $id => $reviewOutcome) {
@@ -759,6 +767,9 @@ abstract class reviewableAssessments extends frontControllerApplication
 			# Merge in the review outcomes attributes to the outcome ID and the comments
 			$result += $this->reviewOutcomes[$result['outcome']];
 		}
+		
+		# Show the HTML
+		echo $html;
 		
 		# Return the result
 		return $result;
@@ -993,6 +1004,140 @@ abstract class reviewableAssessments extends frontControllerApplication
 		
 		# Return the changes, if any
 		return $changes;
+	}
+	
+	
+	# Function to reassign a submission
+	private function submissionReassign ($submission)
+	{
+		# Start the HTML
+		$html  = "\n<h2>Reassign a {$this->settings['description']} form by {$submission['username']} (#{$submission['id']})</h2>";
+		
+		# Ensure the user has reassign rights
+		if (!$this->userCanReassign ($submission)) {
+			$html = "\n<p>You do not appear to have rights to reassign this submission.</p>";
+			return $html;
+		}
+		
+		# Reviewing is only possible in the 'submitted' state
+		if ($submission['status'] != 'submitted') {
+			if ($submission['status'] == 'started' || $submission['status'] == 'reopened') {
+				$html = "\n<p>The submission is <a href=\"{$this->baseUrl}/submissions/{$submission['id']}/\">open for editing</a>.</p>";
+			} else {
+				$html = "\n<p>The submission <a href=\"{$this->baseUrl}/submissions/{$submission['id']}/\">can be viewed</a>.</p>";
+			}
+			return $html;
+		}
+		
+		# Obtain the new reviewer, or end
+		if (!$newReviewer = $this->reassignForm ()) {
+			$html .= $this->viewSubmission ($submission, true);
+			return $html;
+		}
+		
+		# Update the record
+		$update = array (
+			'currentReviewer'		=> $newReviewer,
+			'updatedAt'				=> 'NOW()',	// Database library will convert from string to SQL keyword
+		);
+		$this->databaseConnection->update ($this->settings['database'], $this->settings['table'], $update, array ('id' => $submission['id']));
+		
+		# Determine the submission URL
+		$submissionUrl = "{$_SERVER['_SITE_URL']}{$this->baseUrl}/submissions/{$submission['id']}/";
+		
+		# E-mail the reassignment notification
+		$newReviewerName = $this->emailReassignNotification ($submissionUrl, $submission, $newReviewer);
+		
+		# Confirm success
+		$html  = "\n<p>The <a href=\"{$submissionUrl}\">submission</a> has now been reassigned to {$newReviewerName}, and they have been sent an e-mail.</p>";
+		$html .= "\n<p><a href=\"{$this->baseUrl}/submissions/\">Return to the list of submissions.</a></p>";
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Function to determine whether a user has rights to reassign a submission
+	private function userCanReassign ($submission)
+	{
+		# Admins can reassign
+		if ($this->userIsAdministrator) {return true;}
+		
+		# The director can reassign
+		if ($this->user == $this->settings['directorUsername']) {return true;}
+		
+		# The current reviewer can reassign
+		if ($this->user == $submission['currentReviewer']) {return true;}
+		
+		# Otherwise no rights
+		return false;
+	}
+	
+	
+	# Function to create the reviewer reassignment form
+	private function reassignForm ()
+	{
+		# Create the form
+		$form = new form (array (
+			'div' => 'graybox ultimateform',
+			'display' => 'paragraphs',
+			'displayRestrictions' => false,
+			'formCompleteText' => false,
+		));
+		$form->heading ('p', 'You can reassign the reviewer using this form. They will be informed by e-mail. (The original submitter will not be informed.)');
+		$form->input (array (
+			'name'					=> 'username',
+			'title'					=> 'Reassign the reviewer to',
+			'required'				=> true,
+			'size'					=> 50,
+			'description'			=> '(This should be a username.)',
+			'autocomplete'			=> $this->settings['usersAutocomplete'],
+			'autocompleteOptions'	=> array ('delay' => 0),
+			'regexp'				=> '^([a-z0-9]+)$',
+			'placeholder'			=> 'Type a username or name to search',
+		));
+		
+		# Process the form or end
+		if (!$result = $form->process ($html)) {return false;}
+		
+		# Return the username of the new reviewer
+		return $result['username'];
+	}
+	
+	
+	# Function to e-mail reassignment notification
+	private function emailReassignNotification ($submissionUrl, $submission, $newReviewer)
+	{
+		# Assemble the current user's details
+		$userLookupData = camUniData::getLookupData ($this->user);
+		$loggedInReviewerEmail = $this->user . "@{$this->settings['emailDomain']}";
+		$loggedInReviewerName  = ($userLookupData ? $userLookupData['name']  : false);
+		
+		# Assemble the new reviewer's details
+		#!# Ideally the saluation below should just use their first name, which is more friendly
+		$userLookupData = camUniData::getLookupData ($newReviewer);
+		$newReviewerEmail = $newReviewer . "@{$this->settings['emailDomain']}";
+		$newReviewerName  = ($userLookupData ? $userLookupData['name']  : false);
+		
+		# Construct the message
+		$message  = '';
+		$message .= ($submission['name'] ? "\nDear {$newReviewerName},\n\n" : '');
+		$message .= "I have reassigned a {$this->settings['description']} to you for review.";
+		$message .= "\n\nPlease kindly review it at:\n{$submissionUrl}review.html";
+		$message .= "\n\n\nThanks" . ($loggedInReviewerName ? ",\n\n{$loggedInReviewerName}" : '.');
+		
+		# The recipient is the new receivewer
+		$to = ($newReviewerName ? "{$newReviewerName} <{$newReviewerEmail}>" : $newReviewerEmail);
+		
+		# Construct the message details
+		$subject = ucfirst ($this->settings['description']) . " (#{$submission['id']}) reassigned to you";
+		$headers  = 'From: ' . ($loggedInReviewerName ? "{$loggedInReviewerName} <{$loggedInReviewerEmail}>" : $loggedInReviewerEmail);
+		
+		# Send the message
+		application::utf8Mail ($to, $subject, wordwrap ($message), $headers);
+		
+		# Return the new reviewer's name, for use on the confirmation page
+		return $newReviewerName;
 	}
 	
 	
@@ -1499,6 +1644,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 	
 	
 	# Function to view a submission, effectively a wrapper to the submission renderer but which adds an actions UI, information box, etc.
+	#!# Need to rename $data to $submission for clarity
 	private function viewSubmission ($data, $suppressHeader = false, $changes = array ())
 	{
 		# Start the HTML
@@ -1512,8 +1658,11 @@ abstract class reviewableAssessments extends frontControllerApplication
 			
 			# Create reopen/clone button if the status makes this available
 			if ($data['status'] == 'submitted') {
-				if ($this->userIsAdministrator || $data['currentReviewer'] == $this->user) {
+				if ($this->userIsAdministrator || ($this->user == $data['currentReviewer'])) {
 					$actions[] = "<a class=\"actions\" href=\"{$this->baseUrl}/submissions/{$data['id']}/review.html\"><img src=\"/images/icons/application_form_edit.png\" alt=\"\" class=\"icon\" /> Review this submission</a>";
+				}
+				if ($this->userCanReassign ($data)) {
+					$actions[] = "<a class=\"actions\" href=\"{$this->baseUrl}/submissions/{$data['id']}/reassign.html\"><img src=\"/images/icons/page_go.png\" alt=\"\" class=\"icon\" /> Reassign reviewer</a>";
 				}
 				if ($this->getArchivedVersions ($data['id'])) {
 					$actions[] = "<a class=\"actions\" href=\"{$this->baseUrl}/submissions/{$data['id']}/compare.html\"><img src=\"/images/icons/zoom.png\" alt=\"\" class=\"icon\" /> Compare versions</a>";
