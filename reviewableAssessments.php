@@ -1877,7 +1877,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		
 		# Update the data; the id and username will already be present (and should never be re-supplied in the code, so that they stay constant)
 		if (!$this->databaseConnection->update ($this->settings['database'], $this->settings['table'], $submission, array ('id' => $id))) {
-			$html .= $this->reportError ("There was a problem updating this submission:\n\n" . print_r ($submission, true), 'There was a problem updating this submission. The Webmaster has been informed and will investigate shortly.');
+			$html .= $this->reportError ("There was a problem updating this submission:\n\n" . print_r ($submission, true) . "\n\n" . print_r ($this->databaseConnection->error (), true), 'There was a problem updating this submission. The Webmaster has been informed and will investigate shortly.');
 			return $html;
 		}
 		
