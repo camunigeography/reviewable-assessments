@@ -134,7 +134,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			  
 			  {$specificFields}
 			  
-			  `confirmation` int(1) NOT NULL DEFAULT '0' COMMENT 'Confirmation',
+			  `confirmation` int(1) NULL DEFAULT '0' COMMENT 'Confirmation',
 			  `reviewOutcome` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT 'Review outcome',
 			  `comments` text COLLATE utf8_unicode_ci COMMENT 'Comments from administrator',
 			  `stage2InfoRequired` int(1) DEFAULT NULL COMMENT 'Stage 2 information required',
@@ -1932,7 +1932,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'contactAddress'				=> array ('rows' => 4, 'cols' => 50, ),
 		);
 		
-		# Define the database fields that are NULLable; this is done manually so that the Save & Continue button is possible
+		# Define the database fields that should be treated as NOT NULL when doing a full submission (rather than "Save and continue"), even though the database sets them as NULLable; this is done manually so that the "Save and continue" button is possible
 		$genericFields = array ('description', 'name', 'email', 'type', 'college', 'seniorPerson', 'confirmation', );
 		
 		# Determine the local fields
