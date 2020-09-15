@@ -104,7 +104,9 @@ abstract class reviewableAssessments extends frontControllerApplication
 			CREATE TABLE `countries` (
 			  `id` int(11) NOT NULL COMMENT 'Automatic key',
 			  `value` varchar(255) COLLATE utf8_unicode_ci NOT NULL COMMENT 'Country name',
-			  `label` varchar(255) COLLATE utf8_unicode_ci NOT NULL COMMENT 'Label'
+			  `label` varchar(255) COLLATE utf8_unicode_ci NOT NULL COMMENT 'Label',
+			  PRIMARY KEY (`id`),
+			  KEY `country` (`value`)
 			) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Country names';
 			
 			CREATE TABLE IF NOT EXISTS `settings` (
