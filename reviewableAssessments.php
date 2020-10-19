@@ -745,14 +745,14 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'unsavedDataProtection' => true,
 		));
 		$form->heading ('p', 'Please review the submission below and submit the form. This will e-mail your decision, and a link to this page, to the original submitter.');
-		$form->radiobuttons (array ( 
+		$form->radiobuttons (array (
 		    'name'		=> 'outcome',
 		    'title'		=> 'Review outcome',
 		    'values'	=> $reviewOutcomes,
 		    'required'	=> true,
 			'entities'	=> false,	// i.e. treat labels as incoming HTML
 		));
-		$form->textarea (array ( 
+		$form->textarea (array (
 		    'name'		=> 'comments',
 		    'title'		=> 'Comments (optional)',
 		    'cols'		=> 80,
@@ -1389,14 +1389,18 @@ abstract class reviewableAssessments extends frontControllerApplication
 		$data = array ();
 		
 		# Ensure the user is registered the database, and look up the user's status
-		$userData = $this->getUser ($this->user);
+		$userData = $this->getUser ($this->user, $errorHtml /* returned by reference */);
 		
 		# End if no user data
 		if (!$userData) {
-			$html .= "<p>In order to use this system, you must firstly be registered in our database.</p>";
-			$html .= "<p>At present, the website does not have a record of your details, though this can be because of delays at certain times of year in data being added.</p>";
-			$message = "Please register me for the {$this->settings['description']} system. My details are as follows:\n\nStatus [delete as appropriate]:\nstaff/student/external";
-			$html .= "<p><strong>Please <a href=\"{$this->baseUrl}/feedback.html?message=" . htmlspecialchars (urlencode ($message)) . "\">contact us</a> with your details so we can add you quickly.</strong></p>";
+			if ($errorHtml) {
+				$html = $errorHtml;
+			} else {
+				$html .= "<p>In order to use this system, you must firstly be registered in our database.</p>";
+				$html .= "<p>At present, the website does not have a record of your details, though this can be because of delays at certain times of year in data being added.</p>";
+				$message = "Please register me for the {$this->settings['description']} system. My details are as follows:\n\nStatus [delete as appropriate]:\nstaff/student/external";
+				$html .= "<p><strong>Please <a href=\"{$this->baseUrl}/feedback.html?message=" . htmlspecialchars (urlencode ($message)) . "\">contact us</a> with your details so we can add you quickly.</strong></p>";
+			}
 			echo $html;
 			return false;
 		}
@@ -1786,11 +1790,11 @@ abstract class reviewableAssessments extends frontControllerApplication
 	
 	
 	# Function to get the user
-	private function getUser ($userId)
+	private function getUser ($userId, &$errorHtml)
 	{
 		# Get the data and return it
 		$callbackFunction = $this->settings['userCallback'];
-		$userData = $callbackFunction ($this->databaseConnection, $userId);
+		$userData = $callbackFunction ($this->databaseConnection, $userId, $errorHtml /* returned by reference */);
 		return $userData;
 	}
 	
