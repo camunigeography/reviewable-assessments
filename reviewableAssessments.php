@@ -29,6 +29,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'pdfStylesheets'		=> array (),
 			'stage2Info'			=> false,		// To enable stage 2 info, define a string describing the information to be added, e.g. 'additional information'
 			'types'					=> array ('Undergraduate', 'MPhil', 'PhD', 'Research staff', 'Academic staff', 'Other'),	// In order of appearance in the form and for the exemplars listing
+			'descriptionDefault'	=> false,		// Whether to create a default description when creating a new form
 		);
 		
 		# Return the defaults
@@ -166,6 +167,11 @@ abstract class reviewableAssessments extends frontControllerApplication
 	{
 		# Disable caching on home
 		$this->globalActions['home']['nocache'] = true;
+		
+		# If using descriptionDefault, switch on name lookups
+		if ($this->settings['descriptionDefault']) {
+			$this->settings['useCamUniLookup'] = true;
+		}
 		
 		# Get the list of Directors of Studies and determine if the user is a DoS
 		$this->dosList = $this->getDosList ();
@@ -1415,6 +1421,9 @@ abstract class reviewableAssessments extends frontControllerApplication
 			}
 		}
 		
+		# Determine default for description
+		$descriptionDefault = ($this->settings['descriptionDefault'] ? mb_ucfirst ($this->settings['description']) . ' for ' . $this->userName : false);
+		
 		# Create a new form
 		$form = new form (array (
 			'display' => 'paragraphs',
@@ -1430,7 +1439,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'title'			=> "Give this {$this->settings['description']} a description (you can change this later)",
 			'required'		=> true,
 			'size'			=> 60,
-			'default'		=> ($data ? $data['description'] : false),
+			'default'		=> ($data ? $data['description'] : $descriptionDefault),
 		));
 		
 		# Process the form
