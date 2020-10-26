@@ -1392,7 +1392,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		$userData = $this->getUser ($this->user, $errorHtml /* returned by reference */);
 		
 		# End if no user data
-		if (!$userData) {
+		if (!$userData && !$this->userIsAdministrator) {	// Admins can see the form
 			if ($errorHtml) {
 				$html = $errorHtml;
 			} else {
