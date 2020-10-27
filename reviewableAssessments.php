@@ -843,7 +843,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		$cc = array ();
 		if ($currentReviewer != $submission['seniorPerson']) {	// i.e. Copy in the DoS if in passup
 			if ($reviewOutcome == 'passup') {	// On the specific passup event, copy in the main reviewer
-				$cc[] = $currentReviewer . "@{$this->settings['emailDomain']}";
+				$cc[] = $currentReviewer . (str_contains ($currentReviewer, '@') ? '' : "@{$this->settings['emailDomain']}");
 			}
 			$cc[] = $submission['seniorPerson'] . "@{$this->settings['emailDomain']}";	// Copy to DoS; this is done even at passup as a courtesy e.g. to make contact more easily with the Director
 		}
