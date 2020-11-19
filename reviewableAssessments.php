@@ -389,6 +389,11 @@ abstract class reviewableAssessments extends frontControllerApplication
 			return $html;
 		}
 		
+		# Add export button
+		if ($this->userIsAdministrator) {
+			$html .= "\n<p><a class=\"actions right\" href=\"{$this->baseUrl}/download.html\"><img src=\"/images/icons/database_save.png\" /> Download data</a></p>";
+		}
+		
 		# Construct the HTML
 		$html .= "\n<p>As a reviewer, you can see the following submissions:</p>";
 		$submissionsTable = $this->listSubmissions (false, false, $reviewingMode = true);
