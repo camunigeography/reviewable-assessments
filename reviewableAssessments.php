@@ -1795,7 +1795,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 	
 	
 	# Function to get the user
-	private function getUser ($userId, &$errorHtml)
+	private function getUser ($userId, &$errorHtml = false)
 	{
 		# Get the data and return it
 		$callbackFunction = $this->settings['userCallback'];
