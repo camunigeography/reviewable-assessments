@@ -137,7 +137,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			  
 			  {$specificFields}
 			  
-			  `confirmation` int(1) NULL DEFAULT '0' COMMENT 'Confirmation',
+			  `confirmation` TINYINT NULL DEFAULT '0' COMMENT 'Confirmation';
 			  `reviewOutcome` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Review outcome',
 			  `comments` text COLLATE utf8mb4_unicode_ci COMMENT 'Comments from administrator',
 			  `stage2InfoRequired` int(1) DEFAULT NULL COMMENT 'Stage 2 information required',
