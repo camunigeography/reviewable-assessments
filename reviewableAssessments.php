@@ -476,7 +476,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			return true;
 		}
 		
-		# Determine the action
+		# Determine the action, ensuring it is supported
 		$action = 'show';
 		if (isSet ($_GET['do'])) {
 			$extraActions = array ('delete', 'clone', 'review', 'compare', 'reassign');
@@ -487,14 +487,23 @@ abstract class reviewableAssessments extends frontControllerApplication
 			$action = $_GET['do'];
 		}
 		
-		# Check that the user has rights, or end
+		# For edit/clone/delete, check that the user has rights, or end
 		$userHasEditCloneDeleteRights = $this->userHasEditCloneDeleteRights ($submission['username']);
 		if (!$userHasEditCloneDeleteRights) {
-			$disallowedActions = array ('edit', 'clone', 'delete', 'reassign');
+			$disallowedActions = array ('edit', 'clone', 'delete');
 			if (in_array ($action, $disallowedActions)) {
 				$html .= "\n<p>You do not appear to have rights to {$action} the specified submission. Please check the URL and try again.</p>";
 				echo $html;
 				return false;
+			}
+		}
+		
+		# For reassign, check that the user has rights, or end
+		if ($action == 'reassign') {
+			if (!$this->userCanReassign ($submission)) {
+				$html = "\n<p>You do not appear to have rights to reassign this submission.</p>";
+				echo $html;
+				return $html;
 			}
 		}
 		
@@ -732,7 +741,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		$html = '';
 		
 		# If the user can reassign, show a link to the reassign page
-		if ($this->userCanReassign ($data)) {
+		if ($this->userCanReassign ($submission)) {
 			$html .= "<p class=\"alignright\">Or <a class=\"submission\" href=\"{$this->baseUrl}/submissions/{$submission['id']}/reassign.html\"> reassign reviewer &hellip;</a></p>";
 		}
 		
