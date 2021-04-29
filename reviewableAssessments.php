@@ -2231,16 +2231,23 @@ abstract class reviewableAssessments extends frontControllerApplication
 	# Example submissions
 	public function examples ($id)
 	{
+		# Start the HTML
+		$html = '';
+		
 		# Get the examples
 		$ids = explode ("\n", str_replace ("\r\n", "\n", trim ($this->settings['exemplars'])));
 		$examples = $this->getSubmissions (false, false, false, $ids);
 		
 		# Show the listing of examples if no ID supplied
 		if (!$id) {
+			$html .= "\n<h2>" . ucfirst ($this->settings['description']) . ' form exemplars</h2>';
 			$html .= $this->examplesListing ($examples);
 			echo $html;
 			return false;
 		}
+		
+		# Show title
+		$html .= "\n<h2>" . ucfirst ($this->settings['description']) . ' form exemplar</h2>';
 		
 		# In examples mode, check the ID exists
 		if (!isSet ($examples[$id])) {
@@ -2249,9 +2256,6 @@ abstract class reviewableAssessments extends frontControllerApplication
 			return false;
 		}
 		$data = $examples[$id];
-		
-		# Show title
-		$html  = "\n<h2>" . ucfirst ($this->settings['description']) . ' form exemplar</h2>';
 		
 		# Hide private data fields
 		foreach ($data as $field => $value) {
