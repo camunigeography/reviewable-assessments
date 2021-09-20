@@ -1015,7 +1015,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			# Cast empty values to NULL to prevent NULL != '' which is not a relevant change
 			$originalValue = $from[$field];
 			if (!strlen ($originalValue)) {$originalValue = NULL;}
-			#!# For the confirmation widget, this generates "strlen() expects parameter 1 to be string"
+			#!# For the confirmation widget, this generates "strlen() expects parameter 1 to be string, array given"
 			if (!strlen ($currentValue)) {$currentValue = NULL;}
 			
 			# Compare, adding differences to a list of changes noting the original value
@@ -1928,7 +1928,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		}
 		
 		# Set a flash message
-		$flashValue = ($isFormSave ? 'saved (but not finalised)' : 'finalised');
+		$flashValue = ($isFormSave ? 'saved (but not finalised)' : 'finalised and sent');
 		$message = "\n" . '<p>' . $this->tick . ' <strong>The submission has been ' . htmlspecialchars ($flashValue) . ', as below:</strong></p>';
 		$redirectTo = "{$this->baseUrl}/submissions/{$id}/";
 		$html = application::setFlashMessage ('submission' . $id, $flashValue, $redirectTo, $message, $this->baseUrl . '/');	// id is used to ensure the flash only appears attached to the matching submission
