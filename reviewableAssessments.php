@@ -831,7 +831,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		if (!$this->reviewOutcomes[$reviewOutcome]['emailSubject']) {return;}
 		
 		# Assemble the reviewer's details
-		$userLookupData = camUniData::getLookupData ($this->user);
+		$userLookupData = camUniData::lookupUser ($this->user);
 		$loggedInReviewerEmail = $this->user . "@{$this->settings['emailDomain']}";
 		$loggedInReviewerName  = ($userLookupData ? $userLookupData['name']  : false);
 		
@@ -1131,13 +1131,13 @@ abstract class reviewableAssessments extends frontControllerApplication
 	private function emailReassignNotification ($submissionUrl, $submission, $newReviewer)
 	{
 		# Assemble the current user's details
-		$userLookupData = camUniData::getLookupData ($this->user);
+		$userLookupData = camUniData::lookupUser ($this->user);
 		$loggedInReviewerEmail = $this->user . "@{$this->settings['emailDomain']}";
 		$loggedInReviewerName  = ($userLookupData ? $userLookupData['name']  : false);
 		
 		# Assemble the new reviewer's details
 		#!# Ideally the saluation below should just use their first name, which is more friendly
-		$userLookupData = camUniData::getLookupData ($newReviewer);
+		$userLookupData = camUniData::lookupUser ($newReviewer);
 		$newReviewerEmail = $newReviewer . "@{$this->settings['emailDomain']}";
 		$newReviewerName  = ($userLookupData ? $userLookupData['name']  : false);
 		
@@ -1735,7 +1735,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		$htmlNoEntities[] = 'name';
 		
 		# Replace the responsible person's username with their name also
-		if ($userLookupData = camUniData::getLookupData ($data['seniorPerson'])) {
+		if ($userLookupData = camUniData::lookupUser ($data['seniorPerson'])) {
 			$data['seniorPerson'] = htmlspecialchars ($userLookupData['name']) . " &lt;<a href=\"https://www.lookup.cam.ac.uk/person/crsid/{$data['seniorPerson']}/\" target=\"_blank\">{$data['seniorPerson']}</a>&gt;";
 			$htmlNoEntities[] = 'seniorPerson';
 		}
