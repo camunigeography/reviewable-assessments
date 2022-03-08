@@ -95,51 +95,51 @@ abstract class reviewableAssessments extends frontControllerApplication
 		# Define the base SQL
 		$sql = "
 			CREATE TABLE IF NOT EXISTS `administrators` (
-			  `username__JOIN__people__people__reserved` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Username',
-			  `active` enum('','Yes','No') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Yes' COMMENT 'Currently active?',
-			  `privilege` enum('Administrator','Restricted administrator') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Administrator' COMMENT 'Administrator level',
-			  `state` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'State',
+			  `username__JOIN__people__people__reserved` varchar(191) NOT NULL COMMENT 'Username',
+			  `active` enum('','Yes','No') NOT NULL DEFAULT 'Yes' COMMENT 'Currently active?',
+			  `privilege` enum('Administrator','Restricted administrator') NOT NULL DEFAULT 'Administrator' COMMENT 'Administrator level',
+			  `state` varchar(255) DEFAULT NULL COMMENT 'State',
 			  PRIMARY KEY (`username__JOIN__people__people__reserved`)
 			) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='System administrators';
 			
 			CREATE TABLE `countries` (
 			  `id` int(11) NOT NULL COMMENT 'Automatic key',
-			  `value` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Country name',
-			  `label` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Label',
+			  `value` varchar(191) NOT NULL COMMENT 'Country name',
+			  `label` varchar(255) NOT NULL COMMENT 'Label',
 			  PRIMARY KEY (`id`),
 			  KEY `country` (`value`)
 			) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Country names';
 			
 			CREATE TABLE IF NOT EXISTS `settings` (
 			  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Automatic key (ignored)',
-			  `directorUsername` VARCHAR(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Director username',
-			  `peopleResponsible` TEXT COLLATE utf8mb4_unicode_ci NULL COMMENT 'People responsible, for specified groupings',
-			  `additionalCompletionCc` TEXT COLLATE utf8mb4_unicode_ci NULL COMMENT 'Additional e-mail addresses to Cc on completion, for specified groupings',
-			  `introductionHtml` text COLLATE utf8mb4_unicode_ci COMMENT 'Front page introduction text',
-			  `feedbackHtml` TEXT NULL COLLATE utf8mb4_unicode_ci COMMENT 'Feedback page additional note',
+			  `directorUsername` VARCHAR(255) NOT NULL COMMENT 'Director username',
+			  `peopleResponsible` TEXT NULL COMMENT 'People responsible, for specified groupings',
+			  `additionalCompletionCc` TEXT NULL COMMENT 'Additional e-mail addresses to Cc on completion, for specified groupings',
+			  `introductionHtml` text COMMENT 'Front page introduction text',
+			  `feedbackHtml` TEXT NULL COMMENT 'Feedback page additional note',
 			  `exemplars` TEXT NULL DEFAULT NULL COMMENT 'Exemplars (list of IDs, one per line)',
 			  PRIMARY KEY (`id`)
 			) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Settings';
 			
 			CREATE TABLE IF NOT EXISTS `submissions` (
 			  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Automatic key',
-			  `username` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'CRSID',
-			  `status` enum('started','submitted','reopened','deleted','archived','rejected','approved','parked') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'started' COMMENT 'Status of submission',
+			  `username` varchar(50) NOT NULL COMMENT 'CRSID',
+			  `status` enum('started','submitted','reopened','deleted','archived','rejected','approved','parked') NOT NULL DEFAULT 'started' COMMENT 'Status of submission',
 			  `parentId` int(11) DEFAULT NULL COMMENT 'Master record for this version (NULL indicates the master itself)',
 			  `archivedVersion` int(11) DEFAULT NULL COMMENT 'Version number (NULL represents current, 1 is oldest, 2 is newer, etc.)',
-			  `description` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-			  `name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Your name',
-			  `email` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Your email',
-			  `type` enum('" . implode ("','", $this->settings['types']) . "') COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Position/course',
-			  `college` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'College',
-			  `seniorPerson` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Person responsible',
-			  `currentReviewer` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Current reviewer (initially same as seniorPerson, but a passup event can change this)',
+			  `description` varchar(255) NOT NULL,
+			  `name` varchar(255) DEFAULT NULL COMMENT 'Your name',
+			  `email` varchar(255) DEFAULT NULL COMMENT 'Your email',
+			  `type` enum('" . implode ("','", $this->settings['types']) . "') DEFAULT NULL COMMENT 'Position/course',
+			  `college` varchar(255) DEFAULT NULL COMMENT 'College',
+			  `seniorPerson` varchar(255) DEFAULT NULL COMMENT 'Person responsible',
+			  `currentReviewer` varchar(255) DEFAULT NULL COMMENT 'Current reviewer (initially same as seniorPerson, but a passup event can change this)',
 			  
 			  {$specificFields}
 			  
 			  `confirmation` TINYINT NULL DEFAULT '0' COMMENT 'Confirmation';
-			  `reviewOutcome` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Review outcome',
-			  `comments` text COLLATE utf8mb4_unicode_ci COMMENT 'Comments from administrator',
+			  `reviewOutcome` varchar(255) DEFAULT NULL COMMENT 'Review outcome',
+			  `comments` text COMMENT 'Comments from administrator',
 			  `stage2InfoRequired` int(1) DEFAULT NULL COMMENT 'Stage 2 information required',
 			  `updatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Automatic timestamp',
 			  PRIMARY KEY (`id`)
