@@ -30,6 +30,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'stage2Info'			=> false,		// To enable stage 2 info, define a string describing the information to be added, e.g. 'additional information'
 			'types'					=> array ('Undergraduate', 'MPhil', 'PhD', 'Research staff', 'Academic staff', 'Other'),	// In order of appearance in the form and for the exemplars listing
 			'descriptionDefault'	=> false,		// Whether to create a default description when creating a new form
+			'descriptionMaxLength'	=> 130,
 		);
 		
 		# Return the defaults
@@ -1457,6 +1458,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'title'			=> "Give this {$this->settings['description']} a description (you can change this later)",
 			'required'		=> true,
 			'size'			=> 60,
+			'maxlength'		=> $this->settings['descriptionMaxLength'],
 			'default'		=> ($data ? $data['description'] : $descriptionDefault),
 		));
 		
@@ -1875,6 +1877,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		}
 		
 		# Determine if the submission is only a form save
+		#!# Form saving bypassing validation can be problematic if, e.g. "You submitted more characters (174) than are allowed (130)" occurs, and the database then tries to save this, resulting in truncation; form save should still error on invalid data submitted (e.g. too long) but not absent values
 		$isFormSave = $form->formSave;
 		
 		# Process the form
@@ -1952,7 +1955,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		
 		# Compile the dataBinding attributes
 		$dataBindingAttributes = array (
-			'description'					=> array ('size' => 70, 'maxlength' => 130),	#!# Reduce to 80
+			'description'					=> array ('size' => 70, 'maxlength' => $this->settings['descriptionMaxLength']),	#!# Reduce to 80
 			'name'							=> array ('editable' => false, ),
 			'email'							=> array ('editable' => false, ),
 			'type'							=> array ('type' => 'radiobuttons', 'disabled' => true, ),
