@@ -193,6 +193,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		# Determine the conditions; if an administrator, there is no limitation
 		$conditions = array ();
 		if (!$this->userIsAdministrator) {
+			#!# Should this be using currentReviewer now instead?
 			$conditions = array ('seniorPerson' => $this->user);
 		}
 		
@@ -1060,8 +1061,9 @@ abstract class reviewableAssessments extends frontControllerApplication
 		
 		# Update the record
 		$update = array (
-			'currentReviewer'		=> $newReviewer,
-			'updatedAt'				=> 'NOW()',	// Database library will convert from string to SQL keyword
+			'seniorPerson'		=> $newReviewer,
+			'currentReviewer'	=> $newReviewer,
+			'updatedAt'			=> 'NOW()',	// Database library will convert from string to SQL keyword
 		);
 		$this->databaseConnection->update ($this->settings['database'], $this->settings['table'], $update, array ('id' => $submission['id']));
 		
@@ -1932,6 +1934,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		
 		# Set a flash message
 		$flashValue = ($isFormSave ? 'saved (but not finalised)' : 'finalised and sent');
+		#!# This doesn't actually show the result if the redirection fails
 		$message = "\n" . '<p>' . $this->tick . ' <strong>The submission has been ' . htmlspecialchars ($flashValue) . ', as below:</strong></p>';
 		$redirectTo = "{$this->baseUrl}/submissions/{$id}/";
 		$html = application::setFlashMessage ('submission' . $id, $flashValue, $redirectTo, $message, $this->baseUrl . '/');	// id is used to ensure the flash only appears attached to the matching submission
