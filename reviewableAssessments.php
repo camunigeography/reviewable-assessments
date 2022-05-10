@@ -101,7 +101,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			  `privilege` enum('Administrator','Restricted administrator') NOT NULL DEFAULT 'Administrator' COMMENT 'Administrator level',
 			  `state` varchar(255) DEFAULT NULL COMMENT 'State',
 			  PRIMARY KEY (`username__JOIN__people__people__reserved`)
-			) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='System administrators';
+			) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='System administrators';
 			
 			CREATE TABLE `countries` (
 			  `id` int(11) NOT NULL COMMENT 'Automatic key',
@@ -109,7 +109,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			  `label` varchar(255) NOT NULL COMMENT 'Label',
 			  PRIMARY KEY (`id`),
 			  KEY `country` (`value`)
-			) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Country names';
+			) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Country names';
 			
 			CREATE TABLE IF NOT EXISTS `settings` (
 			  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Automatic key (ignored)',
@@ -120,7 +120,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			  `feedbackHtml` TEXT NULL COMMENT 'Feedback page additional note',
 			  `exemplars` TEXT NULL DEFAULT NULL COMMENT 'Exemplars (list of IDs, one per line)',
 			  PRIMARY KEY (`id`)
-			) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Settings';
+			) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Settings';
 			
 			CREATE TABLE IF NOT EXISTS `submissions` (
 			  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Automatic key',
@@ -144,7 +144,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			  `stage2InfoRequired` int(1) DEFAULT NULL COMMENT 'Stage 2 information required',
 			  `updatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Automatic timestamp',
 			  PRIMARY KEY (`id`)
-			) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Table of submissions';
+			) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Table of submissions';
 		";
 		
 		# Return the SQL
