@@ -800,7 +800,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 	}
 	
 	
-	# Function to create an archived submission
+	# Function to create an archived submission, which clones the original to a new entry with a higher ID, so that the original ID is maintained
 	private function createArchivalVersion ($version, $reviewOutcome, $reviewComments, &$html)
 	{
 		# Set the parentId and remove the current ID
@@ -1548,10 +1548,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		);
 		
 		# Get the submission
-		if (!$submission = $this->databaseConnection->selectOne ($this->settings['database'], $this->settings['table'], $conditions)) {return false;}
-		
-		# Extract the ID
-		$databaseIdOfVersion = $submission['id'];
+		if (!$databaseIdOfVersion = $this->databaseConnection->selectOneField ($this->settings['database'], $this->settings['table'], 'id', $conditions)) {return false;}
 		
 		# Return the ID
 		return $databaseIdOfVersion;
@@ -1643,8 +1640,14 @@ abstract class reviewableAssessments extends frontControllerApplication
 		
 		# Get the data
 		#!# IN() could potentially become slow
-		$query = "SELECT id,parentId,archivedVersion,updatedAt FROM {$this->settings['table']} WHERE parentId IN(" . implode (',', $masterIds) . ") ORDER BY parentId,archivedVersion;";
-		if (!$data = $this->databaseConnection->getData ($query, "{$this->settings['database']}.{$this->settings['table']}")) {return array ();}
+		$query = "SELECT
+				id,parentId,archivedVersion,updatedAt
+			FROM {$this->settings['table']}
+			WHERE parentId IN(" . implode (',', $masterIds) . ")
+			ORDER BY parentId,archivedVersion;";
+		if (!$data = $this->databaseConnection->getData ($query, "{$this->settings['database']}.{$this->settings['table']}")) {
+			return array ();
+		}
 		
 		# Regroup by parentId and generate the links for convenience
 		$archivedVersions = array ();
