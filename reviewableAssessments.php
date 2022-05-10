@@ -1919,7 +1919,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		}
 		
 		# Read back the new state of the data
-		$submission = $this->databaseConnection->selectOne ($this->settings['database'], $this->settings['table'], array ('id' => $id));
+		$submission = $this->getSubmission ($id);
 		
 		# E-mail the reviewer
 		if (!$isFormSave) {
