@@ -135,14 +135,14 @@ abstract class reviewableAssessments extends frontControllerApplication
 			  `college` varchar(255) DEFAULT NULL COMMENT 'College',
 			  `seniorPerson` varchar(255) DEFAULT NULL COMMENT 'Person responsible',
 			  `currentReviewer` varchar(255) DEFAULT NULL COMMENT 'Current reviewer (initially same as seniorPerson, but a passup event can change this)',
-			  
-			  {$specificFields}
-			  
 			  `confirmation` TINYINT NULL DEFAULT '0' COMMENT 'Confirmation';
 			  `reviewOutcome` varchar(255) DEFAULT NULL COMMENT 'Review outcome',
 			  `comments` text COMMENT 'Comments from administrator',
 			  `stage2InfoRequired` int(1) DEFAULT NULL COMMENT 'Stage 2 information required',
 			  `updatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Automatic timestamp',
+			  
+			  {$specificFields}
+			  
 			  PRIMARY KEY (`id`)
 			) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Table of submissions';
 		";
