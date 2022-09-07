@@ -846,6 +846,9 @@ abstract class reviewableAssessments extends frontControllerApplication
 		if ($comments) {$message .= "\n\n" . $comments;}
 		$message .= "\n\n" . str_repeat ('-', 74);
 		$message .= "\n\nAccess it at:\n{$submissionUrl}";
+		if ($reviewOutcome == 'approved') {
+			$message .= "\n\nYou can also download a printable PDF at:\n{$submissionUrl}assessment{$submission['id']}.pdf";
+		}
 		$message .= "\n\n\nThanks" . ($loggedInReviewerName ? ",\n\n{$loggedInReviewerName}" : '.');
 		
 		# The recipient is always the original submitter
