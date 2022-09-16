@@ -9,28 +9,29 @@ abstract class reviewableAssessments extends frontControllerApplication
 	{
 		# Specify available arguments as defaults or as NULL (to represent a required argument)
 		$defaults = array (
-			'applicationName'		=> NULL,
-			'hostname'				=> 'localhost',
-			'username'				=> 'reviewableassessments',	/* Note that these are only used for the lookup of people and colleges from the people database, not the main application itself */
-			'database'				=> 'reviewableassessments',
-			'table'					=> 'submissions',
-			'password'				=> NULL,
-			'authentication'		=> true,
-			'administrators'		=> true,
-			'div'					=> 'reviewableassessments',
-			'tabUlClass'			=> 'tabsflat',
-			'description'			=> 'assessment',
-			'userCallback'			=> NULL,		// NB Currently only a simple public function name supported
-			'collegesCallback'		=> NULL,		// NB Currently only a simple public function name supported
-			'dosListCallback'		=> NULL,		// NB Currently only a simple public function name supported
-			'usersAutocomplete'		=> false,		// URL of an autocomplete JSON endpoint
-			'emailDomain'			=> 'cam.ac.uk',
-			'directorDescription'	=> NULL,		// E.g. 'XYZ Officer',
-			'pdfStylesheets'		=> array (),
-			'stage2Info'			=> false,		// To enable stage 2 info, define a string describing the information to be added, e.g. 'additional information'
-			'types'					=> array ('Undergraduate', 'MPhil', 'PhD', 'Research staff', 'Academic staff', 'Other'),	// In order of appearance in the form and for the exemplars listing
-			'descriptionDefault'	=> false,		// Whether to create a default description when creating a new form
-			'descriptionMaxLength'	=> 130,
+			'applicationName'			=> NULL,
+			'hostname'					=> 'localhost',
+			'username'					=> 'reviewableassessments',	/* Note that these are only used for the lookup of people and colleges from the people database, not the main application itself */
+			'database'					=> 'reviewableassessments',
+			'table'						=> 'submissions',
+			'password'					=> NULL,
+			'authentication'			=> true,
+			'administrators'			=> true,
+			'div'						=> 'reviewableassessments',
+			'tabUlClass'				=> 'tabsflat',
+			'description'				=> 'assessment',
+			'userCallback'				=> NULL,		// NB Currently only a simple public function name supported
+			'collegesCallback'			=> NULL,		// NB Currently only a simple public function name supported
+			'dosListCallback'			=> NULL,		// NB Currently only a simple public function name supported
+			'usersAutocomplete'			=> false,		// URL of an autocomplete JSON endpoint
+			'emailDomain'				=> 'cam.ac.uk',
+			'directorDescription'		=> NULL,		// E.g. 'XYZ Officer',
+			'pdfStylesheets'			=> array (),
+			'stage2Info'				=> false,		// To enable stage 2 info, define a string describing the information to be added, e.g. 'additional information'
+			'types'						=> array ('Undergraduate', 'MPhil', 'PhD', 'Research staff', 'Academic staff', 'Other'),	// In order of appearance in the form and for the exemplars listing
+			'listingAdditionalFields'	=> array (),
+			'descriptionDefault'		=> false,		// Whether to create a default description when creating a new form
+			'descriptionMaxLength'		=> 130,
 		);
 		
 		# Return the defaults
@@ -1228,6 +1229,13 @@ abstract class reviewableAssessments extends frontControllerApplication
 			$table[$id]['status'] = ucfirst ($submission['status']);
 			#!# Add ability to see name on hover
 			$table[$id]['Currently with'] = $submission['currentReviewer'];
+			if ($this->settings['listingAdditionalFields']) {
+				if ($reviewingMode) {
+					foreach ($this->settings['listingAdditionalFields'] as $additionalField) {
+						$table[$id][$additionalField] = htmlspecialchars ($submission[$additionalField]);
+					}
+				}
+			}
 			$table[$id]['date'] = ($reviewingMode ? $submission['updatedAt'] : $this->formatDate ($submission['updatedAt']));	// When sortability is enabled (i.e. list every submission), date needs to be ISO format so that it will sort alphabetically
 			if ($showCrudLinks) {
 				$table[$id]['default'] = "<a href=\"{$this->baseUrl}/submissions/{$id}/\">" . ($isSubmitted ? 'View' : 'Edit') . '</a>';
