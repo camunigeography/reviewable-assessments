@@ -120,6 +120,10 @@ abstract class reviewableAssessments extends frontControllerApplication
 			  `introductionHtml` text COMMENT 'Front page introduction text',
 			  `feedbackHtml` TEXT NULL COMMENT 'Feedback page additional note',
 			  `exemplars` TEXT NULL DEFAULT NULL COMMENT 'Exemplars (list of IDs, one per line)',
+			  `approvalCoverSheetHtml` TEXT NULL DEFAULT NULL COMMENT 'Approval cover sheet template',
+			  `logoImageFile` varchar(255) DEFAULT NULL COMMENT 'Logo image (.png only, max 200px), for cover letter',
+			  `directorName` varchar(255) DEFAULT NULL COMMENT 'Director name',
+			  `directorSignatureImageFile` varchar(255) DEFAULT NULL COMMENT 'Director signature image (.png only, max 120px), for cover letter',
 			  PRIMARY KEY (`id`)
 			) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Settings';
 			
@@ -185,6 +189,10 @@ abstract class reviewableAssessments extends frontControllerApplication
 		# Determine if the user has submissions that they can review, or it is expected that they will have in the future (e.g. because they are a DoS)
 		$this->userIsReviewer = ($this->userHasReviewableSubmissions || $this->userIsAdministrator || $this->userIsDos);
 		
+		# Workaround for incorrect dataDirectory in FCA, as we need the child class, not this inherited parent
+		$reflector = new ReflectionClass (get_class ($this));	// I.e. child class, e.g. fooAssessments.php
+		$applicationRoot = dirname ($reflector->getFileName ());
+		$this->dataDirectory = $applicationRoot . $this->settings['dataDirectory'];
 	}
 	
 	
@@ -521,7 +529,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		}
 		
 		# Create the HTML for this action
-		$action = 'submission' . ucfirst ($action);
+		$action = 'submission' . ucfirst ($action);		// e.g. submissionEdit, submissionReview, etc,
 		$html = $this->{$action} ($submission);
 		
 		# Show the HTML
@@ -554,7 +562,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		
 		# If approved, and PDF export is requested, do export
 		if (isSet ($_GET['export']) && $_GET['export'] == 'pdf') {
-			$this->exportPdf ($html, $submission['status'], $submission['id']);
+			$this->exportPdf ($html, $submission['status'], $submission['id'], $submission);
 			return;
 		}
 		
@@ -564,7 +572,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 	
 	
 	# Function to export as PDF
-	private function exportPdf ($html, $status, $id)
+	private function exportPdf ($html, $status, $id, $submission)
 	{
 		# End if not approved
 		if ($status != 'approved') {
@@ -578,11 +586,20 @@ abstract class reviewableAssessments extends frontControllerApplication
 			$stylesheetsHtml .= "\n" . '<style type="text/css" media="all">@import "' . $stylesheetFilename . '";</style>';
 		}
 		
+		# Assemble cover sheet if required
+		$coverSheetHtml = '';
+		if (trim ($this->settings['approvalCoverSheetHtml'])) {
+			$coverSheetHtml  = str_repeat ('<p>&nbsp;</p>', 3);
+			$coverSheetHtml .= $this->processTemplate ($this->settings['approvalCoverSheetHtml'], $submission);
+			$coverSheetHtml .= "\n" . '<p style="page-break-after: always;">&nbsp;</p>';
+		}
+		
 		# Add a timestamp heading
 		$introductionHtml = "\n<p class=\"comment\">Printed at " . date ('g:ia, jS F Y') . " from {$_SERVER['_SITE_URL']}{$this->baseUrl}/submissions/{$id}/</p>\n<hr />";
 		
 		# Compile the HTML
 		$pdfHtml  = $stylesheetsHtml;
+		$pdfHtml .= $coverSheetHtml;
 		$pdfHtml .= $introductionHtml;
 		$pdfHtml .= "\n<div id=\"{$this->settings['div']}\">";
 		$pdfHtml .= $html;
@@ -591,6 +608,47 @@ abstract class reviewableAssessments extends frontControllerApplication
 		# Serve the HTML and terminate all execution
 		application::html2pdf ($pdfHtml, "assessment{$id}.pdf");
 		exit;
+	}
+	
+	
+	# Function to templatise
+	private function processTemplate ($template, $submission)
+	{
+		# Start an array of placeholders for replacement
+		$replacements = array ();
+		
+		# Replace submission fields where present
+		foreach ($submission as $field => $value) {
+			$placeholder = '{' . $field . '}';
+			if (substr_count ($template, $placeholder)) {
+				$replacements[$placeholder] = $value;
+			}
+		}
+		
+		# Format special-case fields
+		$replacements['{updatedAt}'] = date ('jS F, Y', strtotime ($submission['updatedAt']));
+		
+		# Similarly, substitute supported settings values
+		$replacements['{settings.directorName}'] = $this->settings['directorName'];
+		
+		# Image files, and their max size
+		$settings = array (
+			'directorSignatureImageFile' => 120,
+			'logoImageFile' => 300,
+		);
+		foreach ($settings as $setting => $maxSize) {
+			$imageFile = $this->dataDirectory . $setting . '.png';
+			if (file_exists ($imageFile)) {
+				$imageFileBase64 = base64_encode (file_get_contents ($imageFile));
+				$replacements["{settings.{$setting}}"] = "<img src=\"data:image/png;base64,{$imageFileBase64}\" style=\"max-width: {$maxSize}px; max-height: {$maxSize}px;\" />";
+			}
+		}
+		
+		# Substitute
+		$template = strtr ($template, $replacements);
+		
+		# Return the template
+		return $template;
 	}
 	
 	
@@ -2339,6 +2397,23 @@ abstract class reviewableAssessments extends frontControllerApplication
 		
 		# Run the feedback form
 		parent::feedback ();
+	}
+	
+	
+	# Settings
+	public function settings ($dataBindingSettingsOverrides = array ())
+	{
+		# Define overrides
+		$dataBindingSettingsOverrides = array (
+			'attributes' => array (
+				'approvalCoverSheetHtml'		=> array ('height' => 300, 'heading' => array (3 => 'Approval cover sheet (optional)')),
+				'directorSignatureImageFile'	=> array ('directory' => $this->dataDirectory, 'forcedFileName' => 'directorSignatureImageFile', 'allowedExtensions' => array ('png'), 'preview' => true, ),
+				'logoImageFile'					=> array ('directory' => $this->dataDirectory, 'forcedFileName' => 'logoImageFile',              'allowedExtensions' => array ('png'), 'preview' => true, ),
+			),
+		);
+		
+		# Run the main settings system with the overriden attributes
+		return parent::settings ($dataBindingSettingsOverrides);
 	}
 }
 
