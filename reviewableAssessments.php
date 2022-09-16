@@ -1902,6 +1902,8 @@ abstract class reviewableAssessments extends frontControllerApplication
 		# Determine if this is the initial full submission (i.e. more than just the stub) of the application
 		$isInitialSubmission = ($status == 'started');
 		
+		#!# A form save results in 'Currently with' being set, although this does not happen with the initial creation
+		
 		# Set the submission status to submitted if this is an actual submission
 		if (!$isFormSave) {
 			$submission['status'] = 'submitted';
@@ -2009,6 +2011,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'saveButton' => true,
 			'div' => false,
 		));
+		#!# This needs to disable native required="required" handling, as that prevents true "Save and continue later"
 		$form->dataBinding (array (
 			'database' => $this->settings['database'],
 			'table' => $this->settings['table'],
