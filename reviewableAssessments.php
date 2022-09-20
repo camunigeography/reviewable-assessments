@@ -627,6 +627,8 @@ abstract class reviewableAssessments extends frontControllerApplication
 		
 		# Format special-case fields
 		$replacements['{updatedAt}'] = date ('jS F, Y', strtotime ($submission['updatedAt']));
+		$replacements['{seniorPerson}'] = strip_tags ($this->renderResponsiblePerson ($submission['seniorPerson'], $htmlNoEntities_ignored = array () /* modified by reference */));
+		$replacements['{college}'] = $this->renderCollege ($submission['college']);
 		
 		# Similarly, substitute supported settings values
 		$replacements['{settings.directorName}'] = $this->settings['directorName'];
