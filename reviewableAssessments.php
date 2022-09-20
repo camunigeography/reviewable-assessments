@@ -1811,20 +1811,36 @@ abstract class reviewableAssessments extends frontControllerApplication
 		$htmlNoEntities[] = 'name';
 		
 		# Replace the responsible person's username with their name also
-		if ($userLookupData = camUniData::lookupUser ($data['seniorPerson'])) {
-			$data['seniorPerson'] = htmlspecialchars ($userLookupData['name']) . " &lt;<a href=\"https://www.lookup.cam.ac.uk/person/crsid/{$data['seniorPerson']}/\" target=\"_blank\">{$data['seniorPerson']}</a>&gt;";
-			$htmlNoEntities[] = 'seniorPerson';
-		}
+		$data['seniorPerson'] = $this->renderResponsiblePerson ($data['seniorPerson'], $htmlNoEntities /* modified by reference */);
 		
 		# Replace the college database value with the visible text
-		$colleges = $this->getColleges ();
-		$data['college'] = ($data['college'] ? $colleges[$data['college']] : false);
+		$data['college'] = $this->renderCollege ($data['college']);
 		
 		# Render the submission into the template
 		$html .= $this->renderSubmission ($data, $htmlNoEntities, $changes);
 		
 		# Return the HTML
 		return $html;
+	}
+	
+	
+	# Function to render the responsible person's name/username
+	private function renderResponsiblePerson ($seniorPerson, &$htmlNoEntities)
+	{
+		if ($userLookupData = camUniData::lookupUser ($seniorPerson)) {
+			$seniorPerson = htmlspecialchars ($userLookupData['name']) . " &lt;<a href=\"https://www.lookup.cam.ac.uk/person/crsid/{$seniorPerson}/\" target=\"_blank\">{$seniorPerson}</a>&gt;";
+			$htmlNoEntities[] = 'seniorPerson';
+		}
+		return $seniorPerson;
+	}
+	
+	
+	# Function to render the college name
+	private function renderCollege ($collegeId)
+	{
+		$colleges = $this->getColleges ();
+		$collegeName = ($collegeId ? $colleges[$collegeId] : false);
+		return $collegeName;
 	}
 	
 	
