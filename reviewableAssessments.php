@@ -1445,17 +1445,6 @@ abstract class reviewableAssessments extends frontControllerApplication
 	}
 	
 	
-	# Function to submit an assessment
-	public function submit ()
-	{
-		# Create the form
-		$html = $this->submissionProcessor ();
-		
-		# Show the HTML
-		echo $html;
-	}
-	
-	
 	# Function to determine if the user has clone/delete rights
 	public function userHasEditCloneDeleteRights ($submissionUsername)
 	{
