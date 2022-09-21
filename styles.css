@@ -24,6 +24,11 @@
 #reviewableassessments table.listing td.title a {opacity: 1;}
 #reviewableassessments table.listing .date {color: gray;}
 #reviewableassessments form .reviewOutcome.radiobuttons input {margin-top: 15px;}
+#reviewableassessments .newassessment form table tr td:first-child {width: 200px;}
+#reviewableassessments .newassessment form table td {border-left: 0 !important; border-right: 0 !important; padding: 0 10px 20px 0;}
+#reviewableassessments .newassessment form table tr td:first-child {padding-top: 18px; padding-right: 40px;}
+#reviewableassessments .newassessment form table tr #form_description {display: block; margin-top: 20px;}
+
 @media print {
 	/* @page {size: landscape;} */
 	/* #reviewableassessments #watermark {display: block;} */

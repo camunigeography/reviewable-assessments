@@ -1510,9 +1510,12 @@ abstract class reviewableAssessments extends frontControllerApplication
 		
 		# Create a new form
 		$form = new form (array (
+			'div' => 'ultimateform newassessment',
 			'display' => 'paragraphs',
 			'displayRestrictions' => false,
-			'autofocus'		=> true,
+			'autofocus' => true,
+			'display' => 'tables',
+			'displayColons' => false,
 		));
 		if ($data) {
 			$form->heading ('p', "This form will start a <strong>new</strong> {$this->settings['description']} based on the <a href=\"{$this->baseUrl}/submissions/{$cloneId}/\">existing {$this->settings['description']}</a> you specified.");
