@@ -38,4 +38,9 @@
 		php_value memory_limit 250M
 	</LocationMatch>
 	
+	# Output buffering, for redirects
+	<Location $applicationBaseUrl/>
+		php_value output_buffering 65536
+	</Location>
+	
 </Macro>
