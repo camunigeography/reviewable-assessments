@@ -371,6 +371,9 @@ abstract class reviewableAssessments extends frontControllerApplication
 		$html  = '';
 		
 		# Show introduction HTML
+		if ($this->userIsAdministrator) {
+			$html .= "\n" . '<p class="actions right"><a href="' . $this->baseUrl . '/settings.html#form_introductionHtml"><img src="/images/icons/pencil.png" alt=""> Edit text</a></p>';
+		}
 		$html .= $this->settings['introductionHtml'];
 		
 		# Start new
