@@ -865,6 +865,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 	
 	
 	# Function to create an archived submission, which clones the original to a new entry with a higher ID, so that the original ID is maintained
+	# This cloning happens at the point of review, so that a timestamped archival record of that edition is kept
 	private function createArchivalVersion ($version, $reviewOutcome, $reviewComments, &$html)
 	{
 		# Set the parentId and remove the current ID
@@ -1496,11 +1497,16 @@ abstract class reviewableAssessments extends frontControllerApplication
 					return false;
 				}
 				
-				# Write the submission into the data to be entered after the form
+				# Amend the data to be cloned, to be closer to a standard fresh new submission
 				unset ($submission['id']);
 				unset ($submission['username']);
 				unset ($submission['updatedAt']);
 				$submission['status'] = 'started';
+				$submission['confirmation'] = 0;
+				$submission['reviewOutcome'] = NULL;
+				$submission['comments'] = NULL;
+				
+				# Write the submission into the data to be entered after the form
 				$data = $submission;
 			}
 		}
