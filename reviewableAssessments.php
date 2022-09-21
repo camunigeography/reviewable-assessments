@@ -133,7 +133,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			  `status` enum('started','submitted','reopened','deleted','archived','rejected','approved','parked') NOT NULL DEFAULT 'started' COMMENT 'Status of submission',
 			  `parentId` int(11) DEFAULT NULL COMMENT 'Master record for this version (NULL indicates the master itself)',
 			  `archivedVersion` int(11) DEFAULT NULL COMMENT 'Version number (NULL represents current, 1 is oldest, 2 is newer, etc.)',
-			  `description` varchar(255) NOT NULL,
+			  `description` varchar(255) NOT NULL COMMENT 'Description',
 			  `name` varchar(255) DEFAULT NULL COMMENT 'Your name',
 			  `email` varchar(255) DEFAULT NULL COMMENT 'Your email',
 			  `type` enum('" . implode ("','", $this->settings['types']) . "') DEFAULT NULL COMMENT 'Position/course',
