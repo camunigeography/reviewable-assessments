@@ -691,7 +691,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		}
 		
 		# Get any archive versions
-		$archivedVersions = $this->getArchivedVersions ($submission['id']);
+		$archivedVersions = $this->getArchivedVersionsSummary ($submission['id']);
 		$totalArchivedVersions = count ($archivedVersions);
 		
 		# Confirmation form
@@ -976,7 +976,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		$html  = '';
 		
 		# Get any archive versions
-		if (!$versionDescriptions = $this->getArchivedVersions ($submission['id'], 'text')) {
+		if (!$versionDescriptions = $this->getArchivedVersionsSummary ($submission['id'], 'text')) {
 			$html = "\n<p>There are no earlier versions of this submission.</p>";
 			return $html;
 		}
@@ -986,7 +986,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		$versionDescriptions[$parentId] = "Current version [{$submission['status']}] - updated " . $this->formatDate ($submission['updatedAt']);
 		
 		# Get a mapping of (internal) ID version to public
-		$versionIds = $this->getArchivedVersions ($submission['id'], 'version');
+		$versionIds = $this->getArchivedVersionsSummary ($submission['id'], 'version');
 		$versionIds[$parentId] = 'current';
 		$versionIds = array_flip ($versionIds);
 		
@@ -1266,7 +1266,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		}
 		
 		# Get the archived versions (if any) for these submissions
-		$archivedVersions = $this->getArchivedVersions (array_keys ($submissions));
+		$archivedVersions = $this->getArchivedVersionsSummary (array_keys ($submissions));
 		
 		# Determine whether to show the clone/delete links
 		$showCrudLinks = (!$reviewingMode || $this->userIsAdministrator);
@@ -1702,7 +1702,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 	
 	
 	# Function to get archived versions for a set of master records
-	private function getArchivedVersions ($masterIds, $format = 'link')
+	private function getArchivedVersionsSummary ($masterIds, $format = 'link')
 	{
 		# If only a single ID is being requested, convert to an array
 		$oneIdOnly = (!is_array ($masterIds));
@@ -1772,7 +1772,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 				if ($this->userCanReassign ($data)) {
 					$actions[] = "<a class=\"actions\" href=\"{$this->baseUrl}/submissions/{$data['id']}/reassign.html\"><img src=\"/images/icons/page_go.png\" alt=\"\" class=\"icon\" /> Reassign reviewer</a>";
 				}
-				if ($this->getArchivedVersions ($data['id'])) {
+				if ($this->getArchivedVersionsSummary ($data['id'])) {
 					$actions[] = "<a class=\"actions\" href=\"{$this->baseUrl}/submissions/{$data['id']}/compare.html\"><img src=\"/images/icons/zoom.png\" alt=\"\" class=\"icon\" /> Compare versions</a>";
 				}
 				$actions[] = "<a class=\"actions\" href=\"{$this->baseUrl}/new/{$data['id']}/\"><img src=\"/images/icons/page_copy.png\" alt=\"\" class=\"icon\" /> Clone to new assessment</a>";
@@ -2051,13 +2051,13 @@ abstract class reviewableAssessments extends frontControllerApplication
 		
 		# Compile the dataBinding attributes
 		$dataBindingAttributes = array (
-			'description'					=> array ('size' => 70, 'maxlength' => $this->settings['descriptionMaxLength']),	#!# Reduce to 80
-			'name'							=> array ('editable' => false, ),
-			'email'							=> array ('editable' => false, ),
-			'type'							=> array ('type' => 'radiobuttons', 'disabled' => true, ),
-			'college'						=> array ('type' => 'select', 'values' => $this->getColleges (), ),
-			'seniorPerson' 					=> $seniorPerson['widget'],
-			'contactAddress'				=> array ('rows' => 4, 'cols' => 50, ),
+			'description'		=> array ('size' => 70, 'maxlength' => $this->settings['descriptionMaxLength']),	#!# Reduce to 80
+			'name'				=> array ('editable' => false, ),
+			'email'				=> array ('editable' => false, ),
+			'type'				=> array ('type' => 'radiobuttons', 'disabled' => true, ),
+			'college'			=> array ('type' => 'select', 'values' => $this->getColleges (), ),
+			'seniorPerson' 		=> $seniorPerson['widget'],
+			'contactAddress'	=> array ('rows' => 4, 'cols' => 50, ),
 		);
 		
 		# Define the database fields that should be treated as NOT NULL when doing a full submission (rather than "Save and continue"), even though the database sets them as NULLable; this is done manually so that the "Save and continue" button is possible
@@ -2100,7 +2100,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		$form->dataBinding (array (
 			'database' => $this->settings['database'],
 			'table' => $this->settings['table'],
-			'data'	=> $data,
+			'data' => $data,
 			'intelligence' => true,
 			'exclude' => $this->internalFields,
 			'attributes' => $dataBindingAttributes,
