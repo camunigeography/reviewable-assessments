@@ -960,11 +960,17 @@ abstract class reviewableAssessments extends frontControllerApplication
 	# Function to get the most recent archived version
 	private function getMostRecentArchivedVersion ($parentId, $field = '*')
 	{
-		# Get the data
-		$result = $this->databaseConnection->selectOne ($this->settings['database'], $this->settings['table'], array ('parentId' => $parentId), array ($field), false, $orderBy = 'archivedVersion DESC', $limit = 1);
+		# Get the data, or end if no parent (i.e. current is original submission)
+		if (!$result = $this->databaseConnection->selectOne ($this->settings['database'], $this->settings['table'], array ('parentId' => $parentId), array ($field), false, $orderBy = 'archivedVersion DESC', $limit = 1)) {
+			return NULL;	// Which will evaluate to 0 for addition purposes
+		}
 		
-		# If a specific field return that; otherwise return everything
-		if ($field != '*') {return $result[$field];}
+		# If required, return only a specific field
+		if ($field != '*') {
+			$result = $result[$field];
+		}
+		
+		# Return the result
 		return $result;
 	}
 	
