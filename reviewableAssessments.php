@@ -91,9 +91,6 @@ abstract class reviewableAssessments extends frontControllerApplication
 	# Database structure definition
 	public function databaseStructure ()
 	{
-		# Get the domain-specific fields
-		$specificFields = $this->databaseStructureSpecificFields ();
-		
 		# Define the base SQL
 		$sql = "
 			CREATE TABLE IF NOT EXISTS `administrators` (
@@ -144,27 +141,14 @@ abstract class reviewableAssessments extends frontControllerApplication
 			  `reviewOutcome` varchar(255) DEFAULT NULL COMMENT 'Review outcome',
 			  `comments` text COMMENT 'Comments from administrator',
 			  `stage2InfoRequired` int(1) DEFAULT NULL COMMENT 'Stage 2 information required',
+			  `dataJson` JSON NULL DEFAULT NULL COMMENT 'Details (JSON)',
 			  `updatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Automatic timestamp',
-			  
-			  {$specificFields}
-			  
 			  PRIMARY KEY (`id`)
 			) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Table of submissions';
 		";
 		
 		# Return the SQL
 		return $sql;
-	}
-	
-	
-	# Database structure, which the implementation should override
-	public function databaseStructureSpecificFields ()
-	{
-		# Return the SQL
-		return $sql = "
-			  /* Domain-specific fields to be added here */
-			  
-		";
 	}
 	
 	
@@ -218,7 +202,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 	protected function main ()
 	{
 		# Define the internal fields that should not be made visible or editable by the user
-		$this->internalFields = array ('id', 'username', 'status', 'parentId', 'archivedVersion', 'currentReviewer', 'reviewOutcome', 'comments', 'stage2InfoRequired', 'updatedAt');
+		$this->internalFields = array ('id', 'username', 'status', 'parentId', 'archivedVersion', 'currentReviewer', 'reviewOutcome', 'comments', 'stage2InfoRequired', 'dataJson', 'updatedAt');
 		
 		# Define private data fields, used for hiding in examples mode
 		$this->privateDataFields = $this->privateDataFields ();
@@ -884,6 +868,9 @@ abstract class reviewableAssessments extends frontControllerApplication
 		# Set the last updated time
 		$version['updatedAt'] = 'NOW()';	// Database library will convert to native function
 		
+		# Pack the local data fields to JSON, and remove their native values
+		$version = $this->packSubmissionJson ($version);
+		
 		# Insert the new archival entry
 		if (!$this->databaseConnection->insert ($this->settings['database'], $this->settings['table'], $version)) {
 			$html = $this->reportError ("There was a problem creating the new version:\n\n" . print_r ($version, true), 'There was a problem archiving the old version of this submission. The Webmaster has been informed and will investigate shortly.');
@@ -964,6 +951,9 @@ abstract class reviewableAssessments extends frontControllerApplication
 		if (!$result = $this->databaseConnection->selectOne ($this->settings['database'], $this->settings['table'], array ('parentId' => $parentId), array (), false, $orderBy = 'archivedVersion DESC', $limit = 1)) {
 			return NULL;	// Which will evaluate to 0 for addition purposes
 		}
+		
+		# Unpack the detail data
+		$result = $this->unpackSubmissionJson ($result);
 		
 		# If required, return only the archived version field value
 		if ($getOnlyArchivedVersionField) {
@@ -1089,9 +1079,10 @@ abstract class reviewableAssessments extends frontControllerApplication
 			if (in_array ($field, $this->internalFields)) {continue;}
 			
 			# Cast empty values to NULL to prevent NULL != '' which is not a relevant change
+			#!# If stage2InfoRequired, then the values may not already exist in the JSON data; however, the diffing will work correctly as non-existent value will evaluate to empty, though an offset is through
 			$originalValue = $from[$field];
 			if (!strlen ($originalValue)) {$originalValue = NULL;}
-			#!# For the confirmation widget, this generates "strlen() expects parameter 1 to be string, array given"
+			#!# For the confirmation widget, this generates "strlen() expects parameter 1 to be string, array given" - due to ultimateForm inconsistency
 			if (!strlen ($currentValue)) {$currentValue = NULL;}
 			
 			# Compare, adding differences to a list of changes noting the original value
@@ -1512,6 +1503,9 @@ abstract class reviewableAssessments extends frontControllerApplication
 				$submission['reviewOutcome'] = NULL;
 				$submission['comments'] = NULL;
 				
+				# Pack the local data fields to JSON, and remove their native values
+				$submission = $this->packSubmissionJson ($submission);
+				
 				# Write the submission into the data to be entered after the form
 				$data = $submission;
 			}
@@ -1636,8 +1630,16 @@ abstract class reviewableAssessments extends frontControllerApplication
 	# Function to retrieve an existing submission
 	private function getSubmission ($id)
 	{
+		# Get the data, or end
+		if (!$submission = $this->databaseConnection->selectOne ($this->settings['database'], $this->settings['table'], array ('id' => $id))) {
+			return false;
+		}
+		
+		# Unpack the detail data
+		$submission = $this->unpackSubmissionJson ($submission);
+		
 		# Return the submission
-		return $this->databaseConnection->selectOne ($this->settings['database'], $this->settings['table'], array ('id' => $id));
+		return $submission;
 	}
 	
 	
@@ -1693,9 +1695,18 @@ abstract class reviewableAssessments extends frontControllerApplication
 			$conditions[] = 'id IN (' . implode (',', $sql) . ')';
 		}
 		
+		# If additional fields are required, create the JSON SQL paths
+		$listingAdditionalFieldsPaths = array ();
+		if ($this->settings['listingAdditionalFields']) {
+			foreach ($this->settings['listingAdditionalFields'] as $listingAdditionalField) {
+				$listingAdditionalFieldsPaths[] = "JSON_VALUE(dataJson, '$.{$listingAdditionalField}') AS `{$listingAdditionalField}`";
+			}
+		}
+		
 		# Get the list
 		$query = "SELECT
 			*
+			" . ($listingAdditionalFieldsPaths ? ', ' . implode (', ', $listingAdditionalFieldsPaths) : '') . "
 			FROM {$this->settings['table']}
 			" . ($conditions ? 'WHERE ' . implode (' AND ', $conditions) : '') . "
 			ORDER BY " . ($status ? 'status DESC, ' : '') . "updatedAt
@@ -2008,6 +2019,9 @@ abstract class reviewableAssessments extends frontControllerApplication
 		# Set the last updated time
 		$submission['updatedAt'] = 'NOW()';		// Database library will convert to native function
 		
+		# Pack the local data fields to JSON, and remove their native values
+		$submission = $this->packSubmissionJson ($submission);
+		
 		# Update the data; the id and username will already be present (and should never be re-supplied in the code, so that they stay constant)
 		if (!$this->databaseConnection->update ($this->settings['database'], $this->settings['table'], $submission, array ('id' => $id))) {
 			$html .= $this->reportError ("There was a problem updating this submission:\n\n" . print_r ($submission, true) . "\n\n" . print_r ($this->databaseConnection->error (), true), 'There was a problem updating this submission. The Webmaster has been informed and will investigate shortly.');
@@ -2043,6 +2057,46 @@ abstract class reviewableAssessments extends frontControllerApplication
 	}
 	
 	
+	# Function to convert a submission to unpack the local fields from JSON
+	public function unpackSubmissionJson ($submission)
+	{
+		# Unpack the JSON and add to submission
+		#!# Needs to loop through the localFields, not just blindly unpack anything (or nothing) found
+		if ($submission['dataJson']) {		// Could be NULL
+			$submission += json_decode ($submission['dataJson'], true);		// Use of += Array Union Operator will not overwrite the elements from the first array
+		}
+		
+		# Remove the JSON
+		unset ($submission['dataJson']);
+		
+		# Return the submission
+		return $submission;
+	}
+	
+	
+	# Function to convert a submission to pack the local fields to JSON
+	# This algorithm starts from the table definition, to avoid packing those, rather than $this->localFields, as $this->localFields may not exist at this point
+	public function packSubmissionJson ($submission)
+	{
+		# Get the core fields
+		$coreFields = $this->databaseConnection->getFieldnames ($this->settings['database'], $this->settings['table']);
+		
+		# Extract the local field values and pack to JSON
+		$localFields = array_diff (array_keys ($submission), $coreFields);
+		$localFieldValues = application::arrayFields ($submission, $localFields);
+		$dataJson = json_encode ($localFieldValues);
+		
+		# Delete the native local fields, now that they are represented within the JSON
+		$submission = application::arrayFields ($submission, $coreFields);
+		
+		# Add the JSON
+		$submission['dataJson'] = $dataJson;
+		
+		# Return the submission
+		return $submission;
+	}
+	
+	
 	# Submission form, which the implementation is likely to need to override
 	public function submissionForm ($data)
 	{
@@ -2051,6 +2105,9 @@ abstract class reviewableAssessments extends frontControllerApplication
 		
 		# Add form buttons to the template
 		$template = "\n<p><img src=\"/images/icons/information.png\" alt=\"\" class=\"icon\" /> You can click on {[[SAVE]]} at any time.</p>" . "\n{[[PROBLEMS]]}" . $template . "\n<p>{[[SUBMIT]]} OR you can {[[SAVE]]}</p>";
+		
+		# Define the database fields that should be treated as NOT NULL when doing a full submission (rather than "Save and continue"), even though the database sets them as NULLable; this is done manually so that the "Save and continue" button is possible
+		$genericFields = array ('description', 'name', 'email', 'type', 'college', 'seniorPerson', 'confirmation', );
 		
 		# Determine the widget to be used for the senior person field
 		$seniorPerson = $this->seniorPersonAttributes ($data['type'], $data['username']);
@@ -2066,12 +2123,8 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'contactAddress'	=> array ('rows' => 4, 'cols' => 50, ),
 		);
 		
-		# Define the database fields that should be treated as NOT NULL when doing a full submission (rather than "Save and continue"), even though the database sets them as NULLable; this is done manually so that the "Save and continue" button is possible
-		$genericFields = array ('description', 'name', 'email', 'type', 'college', 'seniorPerson', 'confirmation', );
-		
 		# Determine the local fields
-		$allFields = array_keys ($data);
-		$localFields = array_diff ($allFields, $this->internalFields, $genericFields);
+		$localFields = array_keys ($this->localFields);
 		
 		# Determine fields that have an associated details field, e.g. foo & fooDetail
 		$detailsFields = array ();
@@ -2102,7 +2155,10 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'saveButton' => true,
 			'div' => false,
 		));
+		
 		#!# This needs to disable native required="required" handling, as that prevents true "Save and continue later"
+		
+		# Start with core fields, e.g. description, name, etc.
 		$form->dataBinding (array (
 			'database' => $this->settings['database'],
 			'table' => $this->settings['table'],
@@ -2111,6 +2167,15 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'exclude' => $this->internalFields,
 			'attributes' => $dataBindingAttributes,
 			'notNullFields' => $genericFields,
+			'int1ToCheckbox' => true,
+		));
+		
+		# Add local fields
+		$form->dataBinding (array (
+			'schema' => $this->localFields,			// Populated in getTemplateLocal ()
+			'data'	=> $data,
+			'intelligence' => true,					// Handles foo/fooDetails pairs
+			'attributes' => $dataBindingAttributes,
 			'int1ToCheckbox' => true,
 		));
 		
@@ -2292,14 +2357,61 @@ abstract class reviewableAssessments extends frontControllerApplication
 		</table>
 		";
 		
-		# Add local fields
-		$html .= $this->formTemplateLocal ($data, $watermark);
+		# Add the local (form-specific) template; NB $data is provided available for info, to enable logic to be applied if required
+		$html .= $this->getTemplateLocal ($data, $watermark);
+		// NB $this->localFields will now be populated
 		
 		# Surround with a div for styling purposes
 		$html = "\n<div id=\"assessmentform\" class=\"ultimateform\">\n" . $html . "\n</div>";
 		
 		# Return the HTML
 		return $html;
+	}
+	
+	
+	# Function to parse the template for field definitions, returning a simplified version and registering $this->localFields
+	private function getTemplateLocal ($data, $watermark)
+	{
+		# Load the local template
+		$templateLocal = $this->formTemplateLocal ($data, $watermark);
+		
+		# Find all extended placeholders, e.g. {myfield|enum('','Yes','No')|My field} ; note that enum values be single-quoted
+		preg_match_all ('/{([a-z][_a-zA-Z0-9]*)\|([^|]+)\|([^|]+)}/U', $templateLocal, $matches, PREG_SET_ORDER);		// Fieldname regexp avoids finding {[[SAVE]]}, {[[PROBLEMS]]}, etc.
+		
+		# Start an array of replacements to simplify the template
+		$replacements = array ();
+		
+		# Convert to getFields format; see database.php
+		$templateLocalDataBinding = array ();
+		if ($matches) {
+			foreach ($matches as $match) {
+				$field = $match[1];
+				$templateLocalDataBinding[$field] = array (
+					'Field'			=> $field,
+					'Type'			=> $match[2],
+					'Collation'		=> 'utf8mb4_0900_ai_ci',
+					'Null'			=> 'YES',		// Required field handling is done in dataBinding phase
+					'Key'			=> '',
+					'Default'		=> NULL,
+					'Extra'			=> '',
+					'Privileges'	=> 'select',
+					'Comment'		=> $match[3],
+					'_values'		=> (preg_match ('/^(enum|set)\(\'(.+)\'\)$/i', $match[2], $enumMatches) ? explode ("','", $enumMatches[2]) : NULL),
+				);
+				
+				# Register the simplification
+				$replacements[$match[0]] = '{' . $field . '}';
+			}
+		}
+		
+		# Convert extended placeholders to regular
+		$templateLocal = str_replace (array_keys ($replacements), array_values ($replacements), $templateLocal);
+		
+		# Register the local fields
+		$this->localFields = $templateLocalDataBinding;
+		
+		# Return the simplified template
+		return $templateLocal;
 	}
 	
 	
@@ -2329,7 +2441,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 	# CSV download
 	public function downloadcsv ()
 	{
-		# Serve the CSV file
+		# Serve the CSV file; JSON data will be kept packed in one field
 		$query = "SELECT * FROM {$this->settings['database']}.{$this->settings['table']} ORDER BY id;";
 		$this->databaseConnection->serveCsv ($query, array (), $filenameBase = 'assessments');
 	}
