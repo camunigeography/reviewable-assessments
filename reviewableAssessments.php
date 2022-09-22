@@ -878,7 +878,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		$version['reviewOutcome'] = $reviewOutcome;
 		
 		# Get the highest version number
-		$maxArchivedVersion = $this->getMostRecentArchivedVersion ($version['parentId'], 'archivedVersion');
+		$maxArchivedVersion = $this->getMostRecentArchivedVersion ($version['parentId'], true);
 		$version['archivedVersion'] = $maxArchivedVersion + 1;
 		
 		# Set the last updated time
@@ -958,16 +958,16 @@ abstract class reviewableAssessments extends frontControllerApplication
 	
 	
 	# Function to get the most recent archived version
-	private function getMostRecentArchivedVersion ($parentId, $field = '*')
+	private function getMostRecentArchivedVersion ($parentId, $getOnlyArchivedVersionField = false)
 	{
 		# Get the data, or end if no parent (i.e. current is original submission)
-		if (!$result = $this->databaseConnection->selectOne ($this->settings['database'], $this->settings['table'], array ('parentId' => $parentId), array ($field), false, $orderBy = 'archivedVersion DESC', $limit = 1)) {
+		if (!$result = $this->databaseConnection->selectOne ($this->settings['database'], $this->settings['table'], array ('parentId' => $parentId), array (), false, $orderBy = 'archivedVersion DESC', $limit = 1)) {
 			return NULL;	// Which will evaluate to 0 for addition purposes
 		}
 		
-		# If required, return only a specific field
-		if ($field != '*') {
-			$result = $result[$field];
+		# If required, return only the archived version field value
+		if ($getOnlyArchivedVersionField) {
+			$result = $result['archivedVersion'];
 		}
 		
 		# Return the result
