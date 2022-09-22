@@ -184,7 +184,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		$this->userIsDos = (isSet ($this->dosList[$this->user]));
 		
 		# Determine what submissions, if any, the user has rights to review
-		$this->userHasReviewableSubmissions = $this->getReviewableSubmissions ();
+		$this->userHasReviewableSubmissions = $this->getReviewableSubmissionsIds ();
 		
 		# Determine if the user has submissions that they can review, or it is expected that they will have in the future (e.g. because they are a DoS)
 		$this->userIsReviewer = ($this->userHasReviewableSubmissions || $this->userIsAdministrator || $this->userIsDos);
@@ -196,8 +196,8 @@ abstract class reviewableAssessments extends frontControllerApplication
 	}
 	
 	
-	# Function to get reviewable submissions
-	private function getReviewableSubmissions ()
+	# Function to get reviewable submission IDs
+	private function getReviewableSubmissionsIds ()
 	{
 		# Determine the conditions; if an administrator, there is no limitation
 		$conditions = array ();
