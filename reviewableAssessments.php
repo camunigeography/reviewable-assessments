@@ -1500,6 +1500,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 				}
 				
 				# Amend the data to be cloned, to be closer to a standard fresh new submission
+				# The clone will carry over the form type, which is not altered by a choice form (or setting of the default) below
 				unset ($submission['id']);
 				unset ($submission['username']);
 				unset ($submission['updatedAt']);
@@ -1542,6 +1543,12 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'default'		=> ($data ? $data['description'] : $descriptionDefault),
 		));
 		
+		# If there is a choice form method, used to select which form to present, add in its elements
+		# Choice is not given when cloning, as otherwise data from one type of form would be stranded loading another
+		if (!$cloneId) {
+			$form = $this->choiceForm ($form);
+		}
+		
 		# Process the form
 		if (!$result = $form->process ($html)) {
 			echo $html;
@@ -1560,8 +1567,19 @@ abstract class reviewableAssessments extends frontControllerApplication
 		# Set the last updated time
 		$data['updatedAt'] = 'NOW()';	// Database library will convert to native function
 		
-		# Set the form to load, i.e. form_default
-		$data['form'] = $this->availableForms[0];
+		# If not cloning, set the form type
+		if (!$cloneId) {
+			
+			# Set the form structure to load by default, i.e. form_default
+			$data['form'] = $this->availableForms[0];
+			
+			# If a choice form has set a choice of form, override the default
+			if (array_key_exists ('form', $result)) {
+				if (in_array ($result['form'], $this->availableForms)) {		// Ensure it exists
+					$data['form'] = $result['form'];
+				}
+			}
+		}
 		
 		# Create a new database entry
 		if (!$result = $this->databaseConnection->insert ($this->settings['database'], $this->settings['table'], $data)) {
@@ -1578,6 +1596,14 @@ abstract class reviewableAssessments extends frontControllerApplication
 		
 		# Show the HTML
 		echo $html;
+	}
+	
+	
+	# Choice form, used to select which form to present, which implementations can override to provide relevant elements
+	public function choiceForm ($form)
+	{
+		// No changes by default; implementations can override this method, ensuring they define a widget 'form' which contains the table name, e.g. $result['form'] = 'form_myform'
+		return $form;
 	}
 	
 	
@@ -2137,7 +2163,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		);
 		
 		# Base dataBinding attributes for the form
-		$dataBindingAttributes = array (
+		$formDataBindingAttributes = array (
 			'description'		=> array ('size' => 70, 'maxlength' => $this->settings['descriptionMaxLength']),	#!# Reduce to 80
 			'name'				=> array ('editable' => false, ),
 			'email'				=> array ('editable' => false, ),
@@ -2163,13 +2189,21 @@ abstract class reviewableAssessments extends frontControllerApplication
 		}
 		
 		# Form local section exclude fields
-		$localExcludeFields = array ();
+		$formLocalExcludeFields = array ();
 		
 		# Form override methods
-		$formMainAttributes = $this->{"{$data['form']}_mainAttributes"} ($formMainAttributes);							// E.g. form_default_mainAttributes ()
-		$formDataBindingAttributes = $this->{"{$data['form']}_dataBindingAttributes"} ($dataBindingAttributes, $data);	// E.g. form_default_dataBindingAttributes ()
-		$formLocalRequiredFields = $this->{"{$data['form']}_localRequiredFields"} ($formLocalRequiredFields, $data);	// E.g. form_default_localRequiredFields ()
-		$formLocalExcludeFields = $this->{"{$data['form']}_localExcludeFields"} ($localExcludeFields, $data);			// E.g. form_default_localExcludeFields ()
+		if (method_exists ($this, "{$data['form']}_mainAttributes")) {
+			$formMainAttributes = $this->{"{$data['form']}_mainAttributes"} ($formMainAttributes);								// E.g. form_default_mainAttributes ()
+		}
+		if (method_exists ($this, "{$data['form']}_dataBindingAttributes")) {
+			$formDataBindingAttributes = $this->{"{$data['form']}_dataBindingAttributes"} ($formDataBindingAttributes, $data);	// E.g. form_default_dataBindingAttributes ()
+		}
+		if (method_exists ($this, "{$data['form']}_localRequiredFields")) {
+			$formLocalRequiredFields = $this->{"{$data['form']}_localRequiredFields"} ($formLocalRequiredFields, $data);		// E.g. form_default_localRequiredFields ()
+		}
+		if (method_exists ($this, "{$data['form']}_localExcludeFields")) {
+			$formLocalExcludeFields = $this->{"{$data['form']}_localExcludeFields"} ($formLocalExcludeFields, $data);			// E.g. form_default_localExcludeFields ()
+		}
 		
 		# Start the form
 		$form = new form ($formMainAttributes);
@@ -2200,7 +2234,9 @@ abstract class reviewableAssessments extends frontControllerApplication
 		));
 		
 		# Add validation rules if required
-		$this->{"{$data['form']}_validationRules"} ($form /* modified by reference */, $data);							// E.g. form_default_validationRules ()
+		if (method_exists ($this, "{$data['form']}_validationRules")) {
+			$form = $this->{"{$data['form']}_validationRules"} ($form, $data);								// E.g. form_default_validationRules ()
+		}
 		
 		# Return the form handle
 		return $form;
