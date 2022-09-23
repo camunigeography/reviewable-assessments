@@ -126,6 +126,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			
 			CREATE TABLE IF NOT EXISTS `submissions` (
 			  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Automatic key',
+			  `form` varchar(255) NOT NULL DEFAULT 'form_default' COMMENT 'Form definition (table)',
 			  `username` varchar(50) NOT NULL COMMENT 'CRSID',
 			  `status` enum('started','submitted','reopened','deleted','archived','rejected','approved','parked') NOT NULL DEFAULT 'started' COMMENT 'Status of submission',
 			  `parentId` int(11) DEFAULT NULL COMMENT 'Master record for this version (NULL indicates the master itself)',
@@ -162,6 +163,9 @@ abstract class reviewableAssessments extends frontControllerApplication
 		if ($this->settings['descriptionDefault']) {
 			$this->settings['useCamUniLookup'] = true;
 		}
+		
+		# Get the list of available forms, e.g. form_default, form_..., ...
+		$this->availableForms = array_values (preg_grep ('/^form_/', get_class_methods ($this)));
 		
 		# Get the list of Directors of Studies and determine if the user is a DoS
 		$this->dosList = $this->getDosList ();
@@ -202,7 +206,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 	protected function main ()
 	{
 		# Define the internal fields that should not be made visible or editable by the user
-		$this->internalFields = array ('id', 'username', 'status', 'parentId', 'archivedVersion', 'currentReviewer', 'reviewOutcome', 'comments', 'stage2InfoRequired', 'dataJson', 'updatedAt');
+		$this->internalFields = array ('id', 'form', 'username', 'status', 'parentId', 'archivedVersion', 'currentReviewer', 'reviewOutcome', 'comments', 'stage2InfoRequired', 'dataJson', 'updatedAt');
 		
 		# Define private data fields, used for hiding in examples mode
 		#!# Move this over to settings, as a callback is unnecessary
@@ -1556,6 +1560,9 @@ abstract class reviewableAssessments extends frontControllerApplication
 		# Set the last updated time
 		$data['updatedAt'] = 'NOW()';	// Database library will convert to native function
 		
+		# Set the form to load, i.e. form_default
+		$data['form'] = $this->availableForms[0];
+		
 		# Create a new database entry
 		if (!$result = $this->databaseConnection->insert ($this->settings['database'], $this->settings['table'], $data)) {
 			$html = "<p class=\"warning\">An error occured when adding the new entry. Please contact the Webmaster.</p>";
@@ -2159,10 +2166,10 @@ abstract class reviewableAssessments extends frontControllerApplication
 		$localExcludeFields = array ();
 		
 		# Form override methods
-		$formMainAttributes = $this->formMainAttributes ($formMainAttributes);
-		$formDataBindingAttributes = $this->formDataBindingAttributes ($dataBindingAttributes, $data);
-		$formLocalRequiredFields = $this->formLocalRequiredFields ($formLocalRequiredFields, $data);
-		$formLocalExcludeFields = $this->formLocalExcludeFields ($localExcludeFields, $data);
+		$formMainAttributes = $this->{"{$data['form']}_mainAttributes"} ($formMainAttributes);							// E.g. form_default_mainAttributes ()
+		$formDataBindingAttributes = $this->{"{$data['form']}_dataBindingAttributes"} ($dataBindingAttributes, $data);	// E.g. form_default_dataBindingAttributes ()
+		$formLocalRequiredFields = $this->{"{$data['form']}_localRequiredFields"} ($formLocalRequiredFields, $data);	// E.g. form_default_localRequiredFields ()
+		$formLocalExcludeFields = $this->{"{$data['form']}_localExcludeFields"} ($localExcludeFields, $data);			// E.g. form_default_localExcludeFields ()
 		
 		# Start the form
 		$form = new form ($formMainAttributes);
@@ -2193,15 +2200,20 @@ abstract class reviewableAssessments extends frontControllerApplication
 		));
 		
 		# Add validation rules if required
-		$this->formValidationRules ($form /* modified by reference */, $data);
+		$this->{"{$data['form']}_validationRules"} ($form /* modified by reference */, $data);							// E.g. form_default_validationRules ()
 		
 		# Return the form handle
 		return $form;
 	}
 	
 	
+	# Abstract function for implementation of the form template
+	# Must return $html, an HTML block representing the template
+	abstract public function form_default ($data, $watermark);
+	
+	
 	# Overrideable function to amend the main form attributes
-	public function formMainAttributes ($formMainAttributes)
+	public function form_default_mainAttributes ($formMainAttributes)
 	{
 		// By default, return unmodified
 		return $formMainAttributes;
@@ -2209,7 +2221,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 	
 	
 	# Overrideable function to amend the form dataBinding structure
-	public function formDataBindingAttributes ($dataBindingAttributes, $data)
+	public function form_default_dataBindingAttributes ($dataBindingAttributes, $data)
 	{
 		// By default, return unmodified
 		return $dataBindingAttributes;
@@ -2217,7 +2229,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 	
 	
 	# Overrideable function to set the required fields for the local section dataBinding
-	public function formLocalRequiredFields ($formLocalRequiredFields, $data)
+	public function form_default_localRequiredFields ($formLocalRequiredFields, $data)
 	{
 		// By default, return unmodified
 		return $formLocalRequiredFields;
@@ -2225,7 +2237,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 	
 	
 	# Overrideable function to amend the exclude fields for the local section dataBinding
-	public function formLocalExcludeFields ($localExcludeFields, $data)
+	public function form_default_localExcludeFields ($localExcludeFields, $data)
 	{
 		// By default, return unmodified
 		return $localExcludeFields;
@@ -2233,7 +2245,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 	
 	
 	# Overrideable function to enable form validation rules to be added
-	public function formValidationRules ($form, $data)
+	public function form_default_validationRules ($form, $data)
 	{
 		// By default, return the form object unmodified
 		return $form;
@@ -2429,7 +2441,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 	private function getTemplateLocal ($data, $watermark)
 	{
 		# Load the local template
-		$templateLocal = $this->formTemplateLocal ($data, $watermark);
+		$templateLocal = $this->{$data['form']} ($data, $watermark);	// I.e. form_default ()
 		
 		# Find all extended placeholders, e.g. {myfield|enum('','Yes','No')|My field} ; note that enum values be single-quoted
 		preg_match_all ('/{([a-z][_a-zA-Z0-9]*)\|([^|]+)\|([^|]+)}/U', $templateLocal, $matches, PREG_SET_ORDER);		// Fieldname regexp avoids finding {[[SAVE]]}, {[[PROBLEMS]]}, etc.
@@ -2469,11 +2481,6 @@ abstract class reviewableAssessments extends frontControllerApplication
 		# Return the simplified template
 		return $templateLocal;
 	}
-	
-	
-	# Abstract function for implementation of the form template
-	# Must return $html, an HTML block representing the template
-	abstract public function formTemplateLocal ($data, $watermark);
 	
 	
 	# Download page
