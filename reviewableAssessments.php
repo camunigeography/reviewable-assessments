@@ -2097,8 +2097,8 @@ abstract class reviewableAssessments extends frontControllerApplication
 	}
 	
 	
-	# Submission form, which the implementation is likely to need to override
-	public function submissionForm ($data)
+	# Submission form logic
+	private function submissionForm ($data)
 	{
 		# Get the template
 		$template = $this->formTemplate ($data);
@@ -2112,37 +2112,8 @@ abstract class reviewableAssessments extends frontControllerApplication
 		# Determine the widget to be used for the senior person field
 		$seniorPerson = $this->seniorPersonAttributes ($data['type'], $data['username']);
 		
-		# Compile the dataBinding attributes
-		$dataBindingAttributes = array (
-			'description'		=> array ('size' => 70, 'maxlength' => $this->settings['descriptionMaxLength']),	#!# Reduce to 80
-			'name'				=> array ('editable' => false, ),
-			'email'				=> array ('editable' => false, ),
-			'type'				=> array ('type' => 'radiobuttons', 'disabled' => true, ),
-			'college'			=> array ('type' => 'select', 'values' => $this->getColleges (), ),
-			'seniorPerson' 		=> $seniorPerson['widget'],
-			'contactAddress'	=> array ('rows' => 4, 'cols' => 50, ),
-		);
-		
-		# Determine the local fields
-		$localFields = array_keys ($this->localFields);
-		
-		# Determine fields that have an associated details field, e.g. foo & fooDetail
-		$detailsFields = array ();
-		foreach ($localFields as $field) {
-			if (preg_match ('/^(.+)Details$/', $field, $matches)) {
-				$mainField = $matches[1];
-				$detailsFields[$mainField] = $field;
-			}
-		}
-		
-		# Set all local fields, except detail fields to be required by default
-		foreach ($localFields as $field) {
-			if (in_array ($field, $detailsFields)) {continue;}	// Skip detail fields, as these are handled by dataBinding intelligence
-			$dataBindingAttributes[$field]['required'] = true;
-		}
-		
-		# Databind a form
-		$form = new form (array (
+		# Base main attributes for the form
+		$formMainAttributes = array (
 			'databaseConnection' => $this->databaseConnection,
 			'nullText' => false,
 			'formCompleteText'	=> false,
@@ -2154,7 +2125,45 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'unsavedDataProtection' => true,
 			'saveButton' => true,
 			'div' => false,
-		));
+		);
+		
+		# Base dataBinding attributes for the form
+		$dataBindingAttributes = array (
+			'description'		=> array ('size' => 70, 'maxlength' => $this->settings['descriptionMaxLength']),	#!# Reduce to 80
+			'name'				=> array ('editable' => false, ),
+			'email'				=> array ('editable' => false, ),
+			'type'				=> array ('type' => 'radiobuttons', 'disabled' => true, ),
+			'college'			=> array ('type' => 'select', 'values' => $this->getColleges (), ),
+			'seniorPerson' 		=> $seniorPerson['widget'],
+			'contactAddress'	=> array ('rows' => 4, 'cols' => 50, ),
+		);
+		
+		# Set all local fields, except ...Detail fields, to be required by default
+		$formLocalRequiredFields = array ();
+		$localFields = array_keys ($this->localFields);
+		$detailsFields = array ();
+		foreach ($localFields as $field) {
+			if (preg_match ('/^(.+)Details$/', $field, $matches)) {
+				$mainField = $matches[1];
+				$detailsFields[$mainField] = $field;
+			}
+		}
+		foreach ($localFields as $field) {
+			if (in_array ($field, $detailsFields)) {continue;}	// Skip detail fields, as these are handled by dataBinding intelligence
+			$formLocalRequiredFields[] = $field;
+		}
+		
+		# Form local section exclude fields
+		$localExcludeFields = array ();
+		
+		# Form override methods
+		$formMainAttributes = $this->formMainAttributes ($formMainAttributes);
+		$formDataBindingAttributes = $this->formDataBindingAttributes ($dataBindingAttributes, $data);
+		$formLocalRequiredFields = $this->formLocalRequiredFields ($formLocalRequiredFields, $data);
+		$formLocalExcludeFields = $this->formLocalExcludeFields ($localExcludeFields, $data);
+		
+		# Start the form
+		$form = new form ($formMainAttributes);
 		
 		#!# This needs to disable native required="required" handling, as that prevents true "Save and continue later"
 		
@@ -2165,7 +2174,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'data' => $data,
 			'intelligence' => true,
 			'exclude' => $this->internalFields,
-			'attributes' => $dataBindingAttributes,
+			'attributes' => $formDataBindingAttributes,
 			'notNullFields' => $genericFields,
 			'int1ToCheckbox' => true,
 		));
@@ -2175,11 +2184,56 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'schema' => $this->localFields,			// Populated in getTemplateLocal ()
 			'data'	=> $data,
 			'intelligence' => true,					// Handles foo/fooDetails pairs
-			'attributes' => $dataBindingAttributes,
+			'exclude' => $formLocalExcludeFields,
+			'attributes' => $formDataBindingAttributes,
+			'notNullFields' => $formLocalRequiredFields,
 			'int1ToCheckbox' => true,
 		));
 		
+		# Add validation rules if required
+		$this->formValidationRules ($form /* modified by reference */, $data);
+		
 		# Return the form handle
+		return $form;
+	}
+	
+	
+	# Overrideable function to amend the main form attributes
+	public function formMainAttributes ($formMainAttributes)
+	{
+		// By default, return unmodified
+		return $formMainAttributes;
+	}
+	
+	
+	# Overrideable function to amend the form dataBinding structure
+	public function formDataBindingAttributes ($dataBindingAttributes, $data)
+	{
+		// By default, return unmodified
+		return $dataBindingAttributes;
+	}
+	
+	
+	# Overrideable function to set the required fields for the local section dataBinding
+	public function formLocalRequiredFields ($formLocalRequiredFields, $data)
+	{
+		// By default, return unmodified
+		return $formLocalRequiredFields;
+	}
+	
+	
+	# Overrideable function to amend the exclude fields for the local section dataBinding
+	public function formLocalExcludeFields ($localExcludeFields, $data)
+	{
+		// By default, return unmodified
+		return $localExcludeFields;
+	}
+	
+	
+	# Overrideable function to enable form validation rules to be added
+	public function formValidationRules ($form, $data)
+	{
+		// By default, return the form object unmodified
 		return $form;
 	}
 	
