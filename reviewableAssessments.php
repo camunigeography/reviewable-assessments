@@ -205,6 +205,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		$this->internalFields = array ('id', 'username', 'status', 'parentId', 'archivedVersion', 'currentReviewer', 'reviewOutcome', 'comments', 'stage2InfoRequired', 'dataJson', 'updatedAt');
 		
 		# Define private data fields, used for hiding in examples mode
+		#!# Move this over to settings, as a callback is unnecessary
 		$this->privateDataFields = $this->privateDataFields ();
 		
 		# Define the review outcomes
@@ -862,7 +863,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		$version['reviewOutcome'] = $reviewOutcome;
 		
 		# Get the highest version number
-		$maxArchivedVersion = $this->getMostRecentArchivedVersion ($version['parentId'], true);
+		$maxArchivedVersion = $this->getMostRecentArchivedVersion ($version['parentId'], true);	// Will return NULL (equivalent to 0) if no previous versions, i.e. currently at original
 		$version['archivedVersion'] = $maxArchivedVersion + 1;
 		
 		# Set the last updated time
@@ -944,7 +945,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 	}
 	
 	
-	# Function to get the most recent archived version
+	# Function to get the most recent archived version (which may not exist)
 	private function getMostRecentArchivedVersion ($parentId, $getOnlyArchivedVersionField = false)
 	{
 		# Get the data, or end if no parent (i.e. current is original submission)
@@ -1643,7 +1644,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 	}
 	
 	
-	# Function to get the user's submissions
+	# Function to get a list of submissions, retrieving the summary metadata only (not the form data also)
 	private function getSubmissions ($status = false, $sinceMonths = false, $reviewingMode = false, $specificIds = array ())
 	{
 		# Start an array of conditions
@@ -1969,7 +1970,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			$html .= $this->actionRequestedBox ($mostRecentArchivedVersion);
 		}
 		
-		# Load the submission form
+		# Load the submission form, which will then load the HTML template
 		$form = $this->submissionForm ($data);
 		
 		# Ensure that changes have been made if there is a previous version
