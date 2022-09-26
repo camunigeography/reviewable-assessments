@@ -2482,6 +2482,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		
 		# Convert simple placeholders to extended; this is also helpful to enable quick prototyping since most fields are likely to be standard varchar(255)
 		$templateLocal = preg_replace_callback ('/{([a-z][_a-zA-Z0-9]*)}/', function ($matches) {
+			if ($matches[1] == 'confirmation') {return $matches[0];}	// Return amended, for this field, which is the only generic field expected to be in the template itself
 			return '{' . $matches[1] . '|varchar(255)|' . application::unCamelCase ($matches[1]) . '}';
 		}, $templateLocal);
 		
