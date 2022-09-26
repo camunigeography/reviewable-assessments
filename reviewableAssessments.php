@@ -2480,6 +2480,11 @@ abstract class reviewableAssessments extends frontControllerApplication
 		# Load the local template
 		$templateLocal = $this->{$data['form']} ($data, $watermark);	// I.e. form_default ()
 		
+		# Convert simple placeholders to extended; this is also helpful to enable quick prototyping since most fields are likely to be standard varchar(255)
+		$templateLocal = preg_replace_callback ('/{([a-z][_a-zA-Z0-9]*)}/', function ($matches) {
+			return '{' . $matches[1] . '|varchar(255)|' . application::unCamelCase ($matches[1]) . '}';
+		}, $templateLocal);
+		
 		# Find all extended placeholders, e.g. {myfield|enum('','Yes','No')|My field} ; note that enum values be single-quoted
 		preg_match_all ('/{([a-z][_a-zA-Z0-9]*)\|([^|]+)\|([^|]+)}/U', $templateLocal, $matches, PREG_SET_ORDER);		// Fieldname regexp avoids finding {[[SAVE]]}, {[[PROBLEMS]]}, etc.
 		
