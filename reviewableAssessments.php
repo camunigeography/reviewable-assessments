@@ -2160,6 +2160,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'unsavedDataProtection' => true,
 			'saveButton' => true,
 			'div' => false,
+			'picker' => true,
 		);
 		
 		# Base dataBinding attributes for the form
