@@ -1547,7 +1547,10 @@ abstract class reviewableAssessments extends frontControllerApplication
 		# If there is a choice form method, used to select which form to present, add in its elements
 		# Choice is not given when cloning, as otherwise data from one type of form would be stranded loading another
 		if (!$cloneId) {
-			$form = $this->choiceForm ($form);
+			if (method_exists ($this, 'choiceForm')) {
+				$html .= $this->choiceFormJs ();	// Generic
+				$form = $this->choiceForm ($form);	// Implementation-specific, provided by the driver class
+			}
 		}
 		
 		# Process the form
@@ -1605,11 +1608,79 @@ abstract class reviewableAssessments extends frontControllerApplication
 	}
 	
 	
-	# Choice form, used to select which form to present, which implementations can override to provide relevant elements
+	/*
+	# Choice form template, used to select which form to present, which calling drivers can implement to provide relevant elements
 	public function choiceForm ($form)
 	{
 		// No changes by default; implementations can override this method, ensuring they define a widget 'form' which contains the table name, e.g. $result['form'] = 'form_myform'
 		return $form;
+	}
+	*/
+	
+	
+	# Choice form CSS/JS
+	private function choiceFormJs ()
+	{
+		# JS
+		$jsHtml = "
+		<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js\"></script>
+		<script>
+			$(function() {
+				
+				// Disable the submit button
+				$('.newassessment form :submit').prop ('disabled', 'disabled');
+				
+				// Show initial question
+				$('.newassessment form table tr.choice0').show ();
+				
+				// On clicking a selection
+				$('.newassessment form table tr[class*=choice] input').click (function (e) {
+					
+					var idValue = e.target.id;
+					
+					// Reset state of result widget and submit button
+					$('.newassessment form table tr.form input').prop ('checked', false);
+					$('.newassessment form table tr.form :radio').attr ('disabled', false);
+					$('.newassessment form table tr.form').hide ();
+					$('.newassessment form :submit').prop ('disabled', 'disabled');
+					
+					// Hide all subsequent form elements, in case they are being shown
+					var currentWidgetMatches = idValue.match (/^form_choice([0-9]+)_(.+)/);
+					var currentWidget = currentWidgetMatches[1];
+					while (true) {
+						currentWidget++;
+						if (!$('.newassessment form table tr.choice' + currentWidget).length) {break;}
+						
+						$('.newassessment form table tr.choice' + currentWidget + ' input').prop('checked', false);
+						$('.newassessment form table tr.choice' + currentWidget).hide ();
+					}
+					
+					// If the chosen value defines a goto, advance to that form element
+					if (idValue.indexOf('_goto') >= 0) {
+						var gotoMatches = idValue.match (/^form_choice([0-9]+)_(.+)_goto([0-9]+)$/);
+						var gotoWidget = gotoMatches[3];
+						
+						// Display the goto element
+						$('.newassessment form table tr.choice' + gotoWidget).fadeIn ();
+					}
+					
+					// If the form element defines a final result, display the result radiobuttion set, set the chosen radiobutton, and enable the submit button
+					if (idValue.indexOf('_result') >= 0) {
+						var resultMatches = idValue.match(/^form_choice([0-9]+)_(.+)_result_([a-z]+)$/);
+						var result = resultMatches[3];
+						
+						$('.newassessment form table tr.form').fadeIn ();
+						$('.newassessment form table tr.form #form_form_form_' + result).attr ('checked', true).trigger ('click');
+						$('.newassessment form table tr.form :radio:not(:checked)').attr('disabled', true);
+						
+						$('.newassessment form :submit').removeAttr ('disabled');
+					}
+				});
+			});
+		</script>";
+		
+		# Return the HTML
+		return $jsHtml;
 	}
 	
 	

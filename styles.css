@@ -29,6 +29,18 @@
 #reviewableassessments .newassessment form table tr td:first-child {padding-top: 18px; padding-right: 40px;}
 #reviewableassessments .newassessment form table tr #form_description {display: block; margin-top: 20px;}
 
+/* Choice form */
+/* Hide questions, to be revealed: */
+#reviewableassessments .newassessment form table tr[class*=choice] {display: none;}
+/* Choice result of form (also an element in its own right) at end: */
+#reviewableassessments .newassessment form table tr.form {display: none;}
+/* Hide 'Please select' quasi-option: */
+#reviewableassessments .newassessment form table tr.radiobuttons[class*=choice] input:first-child, #reviewableassessments .newassessment form table tr.radiobuttons[class*=choice] label:first-of-type {display: none;}
+/* Choice widget needs spacing as first item is a real entry rather than 'Please select' */
+#reviewableassessments .newassessment form table tr.radiobuttons.form td {padding-top: 10px;}
+/* Submit button disabling */
+#reviewableassessments .newassessment form input[type='submit']:disabled {opacity: 0.4; cursor: not-allowed;}
+
 @media print {
 	/* @page {size: landscape;} */
 	/* #reviewableassessments #watermark {display: block;} */
