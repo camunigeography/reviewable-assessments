@@ -1537,7 +1537,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		}
 		$form->input (array (
 			'name'			=> 'description',
-			'title'			=> "Give this {$this->settings['description']} a description (you can change this later)",
+			'title'			=> "Give this {$this->settings['description']} a description:<br />(You can change this later)",
 			'required'		=> true,
 			'size'			=> 60,
 			'maxlength'		=> $this->settings['descriptionMaxLength'],
