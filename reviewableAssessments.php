@@ -1552,6 +1552,11 @@ abstract class reviewableAssessments extends frontControllerApplication
 		
 		# Process the form
 		if (!$result = $form->process ($html)) {
+			
+			#!# Workaround for ultimateForm not yet having support for required="required" attribute; this helps avoid the usability issue of a form submission losing choice wizard selections
+			$html = str_replace ('<input name="form[description]"', '<input name="form[description]" required="required"', $html);
+			
+			# Show the HTML
 			echo $html;
 			return true;
 		}
