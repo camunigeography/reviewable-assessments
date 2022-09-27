@@ -1529,7 +1529,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'display' => 'tables',
 			'displayColons' => false,
 			'formCompleteText' => false,
-			'submitButtonText' => 'Next (proceed to the form) &raquo;',
+			'submitButtonText' => 'Next (start the form) &raquo;',
 		));
 		if ($data) {
 			$form->heading ('p', "This form will start a <strong>new</strong> {$this->settings['description']} based on the <a href=\"{$this->baseUrl}/submissions/{$cloneId}/\">existing {$this->settings['description']}</a> you specified.");
