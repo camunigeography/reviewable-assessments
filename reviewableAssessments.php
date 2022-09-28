@@ -32,6 +32,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'listingAdditionalFields'	=> array (),
 			'descriptionDefault'		=> false,		// Whether to create a default description when creating a new form
 			'descriptionMaxLength'		=> 130,
+			'emailSubjectAddition'		=> array (),	// Token to add, indexed by form type, when e-mailing
 		);
 		
 		# Return the defaults
@@ -912,7 +913,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		$to = ($submission['name'] ? "{$submission['name']} <{$submission['email']}>" : $submission['email']);
 		
 		# Construct the message details
-		$subject = ucfirst ($this->settings['description']) . " (#{$submission['id']}) review: " . $this->reviewOutcomes[$reviewOutcome]['emailSubject'];
+		$subject = ucfirst ($this->settings['description']) . " (#{$submission['id']}" . $this->emailSubjectAddition ($submission['form']) . ') review: ' . $this->reviewOutcomes[$reviewOutcome]['emailSubject'];
 		$headers  = 'From: ' . ($loggedInReviewerName ? "{$loggedInReviewerName} <{$loggedInReviewerEmail}>" : $loggedInReviewerEmail);
 		
 		# Determine Cc
@@ -967,6 +968,20 @@ abstract class reviewableAssessments extends frontControllerApplication
 		
 		# Return the result
 		return $result;
+	}
+	
+	
+	# Function to determine any additional subject component based on the form type
+	private function emailSubjectAddition ($form)
+	{
+		# End if not enabled
+		if (!$this->settings['emailSubjectAddition']) {return false;}
+		
+		# End if not enabled for this form type
+		if (!isSet ($this->settings['emailSubjectAddition'][$form])) {return false;}
+		
+		# Return the token, with a space-dash before
+		return ' - ' . $this->settings['emailSubjectAddition'][$form];
 	}
 	
 	
@@ -1225,7 +1240,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		$to = ($newReviewerName ? "{$newReviewerName} <{$newReviewerEmail}>" : $newReviewerEmail);
 		
 		# Construct the message details
-		$subject = ucfirst ($this->settings['description']) . " (#{$submission['id']}) reassigned to you";
+		$subject = ucfirst ($this->settings['description']) . " (#{$submission['id']}" . $this->emailSubjectAddition ($submission['form']) . ') reassigned to you';
 		$headers  = 'From: ' . ($loggedInReviewerName ? "{$loggedInReviewerName} <{$loggedInReviewerEmail}>" : $loggedInReviewerEmail);
 		
 		# Send the message
@@ -2157,7 +2172,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		# E-mail the reviewer
 		if (!$isFormSave) {
 			$submissionUrl = "{$_SERVER['_SITE_URL']}{$this->baseUrl}/submissions/{$id}/review.html";
-			$subject = ucfirst ($this->settings['description']) . " (#{$id}) ({$submission['name']}): review needed";
+			$subject = ucfirst ($this->settings['description']) . " (#{$id}" . $this->emailSubjectAddition ($submission['form']) . ") ({$submission['name']}): review needed";
 			$message  = "A {$this->settings['description']} submission (#{$id}) has been " . ($isInitialSubmission ? 'made' : 'updated') . " by {$submission['name']} <{$this->user}>.\n\nPlease kindly please review it via this link:\n\n{$submissionUrl}";
 			// $message .= "\n\nThe date noted was: \"{$submission['data']}\"";
 			$to = $submission['currentReviewer'] . '@' . $this->settings['emailDomain'];
