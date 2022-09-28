@@ -1301,7 +1301,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			if ($this->settings['listingAdditionalFields']) {
 				if ($reviewingMode) {
 					foreach ($this->settings['listingAdditionalFields'] as $additionalField) {
-						$table[$id][$additionalField] = htmlspecialchars ($submission[$additionalField]);
+						$table[$id][$additionalField] = str_replace ('|', ', ', htmlspecialchars ($submission[$additionalField]));
 					}
 				}
 			}
