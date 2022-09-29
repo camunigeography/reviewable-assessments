@@ -40,6 +40,10 @@ abstract class reviewableAssessments extends frontControllerApplication
 	}
 	
 	
+	# Properties
+	public $formColours = array ();
+	
+	
 	# Function to assign supported actions
 	public function actions ()
 	{
@@ -1288,13 +1292,6 @@ abstract class reviewableAssessments extends frontControllerApplication
 		# Determine whether to show the clone/delete links
 		$showCrudLinks = (!$reviewingMode || $this->userIsAdministrator);
 		
-		# Get colouring for form entry if present
-		if (method_exists ($this, 'choiceForm')) {
-			if (method_exists ($this, 'getColours')) {
-				$colours = $this->getColours ();
-			}
-		}
-		
 		# Create a table
 		$table = array ();
 		foreach ($submissions as $id => $submission) {
@@ -1305,7 +1302,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			$icon = $this->statuses[$submission['status']]['icon'];
 			$table[$id]['title'] = "\n<a href=\"{$this->baseUrl}/submissions/{$id}/\"><img src=\"/images/icons/{$icon}.png\" alt=\"Add\" class=\"icon\" /> " . htmlspecialchars ($submission['description']) . '</a>';
 			if (method_exists ($this, 'choiceForm')) {
-				$colour = (isSet ($colours[$submission['form']]) ? $colours[$submission['form']] : false);
+				$colour = (isSet ($this->formColours[$submission['form']]) ? $this->formColours[$submission['form']] : false);
 				$table[$id]['form'] = ($colour ? "<span style=\"color: {$colour};\">" : '') . ucfirst (preg_replace ('/^form_/', '', $submission['form'])) . ($colour ? '</span>' : '');
 			}
 			if ($reviewingMode) {
