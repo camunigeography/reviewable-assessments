@@ -41,6 +41,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 	
 	
 	# Properties
+	public $legacyForms = array ();
 	public $formColours = array ();
 	
 	
@@ -1328,7 +1329,9 @@ abstract class reviewableAssessments extends frontControllerApplication
 			$table[$id]['date'] = ($reviewingMode ? $submission['updatedAt'] : $this->formatDate ($submission['updatedAt']));	// When sortability is enabled (i.e. list every submission), date needs to be ISO format so that it will sort alphabetically
 			if ($showCrudLinks) {
 				$table[$id]['default'] = "<a href=\"{$this->baseUrl}/submissions/{$id}/\">" . ($isSubmitted ? 'View' : 'Edit') . '</a>';
-				$table[$id]['clone'] = "<a href=\"{$this->baseUrl}/new/{$id}/\" title=\"Do NOT use this for submitting corrections\">Clone&hellip;</a>";
+				if ($this->isCloneable ($submission['form'])) {
+					$table[$id]['clone'] = "<a href=\"{$this->baseUrl}/new/{$id}/\" title=\"Do NOT use this for submitting corrections\">Clone&hellip;</a>";
+				}
 				$table[$id]['delete'] = ($isSubmitted ? '' : "<a href=\"{$this->baseUrl}/submissions/{$id}/delete.html\">Delete&hellip;</a>");
 			}
 			if ($archivedVersions) {
@@ -1343,6 +1346,13 @@ abstract class reviewableAssessments extends frontControllerApplication
 		
 		# Return the HTML
 		return $html;
+	}
+	
+	
+	# Function to determine if a submission is cloneable
+	private function isCloneable ($form)
+	{
+		return (!in_array ($form, $this->legacyForms));
 	}
 	
 	
@@ -1518,6 +1528,13 @@ abstract class reviewableAssessments extends frontControllerApplication
 				# Check that the user has rights, or end
 				if (!$this->userHasEditCloneDeleteRights ($submission['username'])) {
 					$html .= "\n<p>You do not appear to have rights to clone the specified submission. Please check the URL and try again, or create a <a href=\"{$this->baseUrl}/new/\">new submission</a>.</p>";
+					echo $html;
+					return false;
+				}
+				
+				# Check that the form is not a legacy type which cannot be cloned
+				if (!$this->isCloneable ($submission['form'])) {
+					$html .= "\n<p>This submission cannot be cloned as it uses a legacy form. Please <a href=\"{$this->baseUrl}/new/\">create a new submission</a> instead.</p>";
 					echo $html;
 					return false;
 				}
@@ -1927,7 +1944,9 @@ abstract class reviewableAssessments extends frontControllerApplication
 				if ($this->getArchivedVersionsSummary ($data['id'])) {
 					$actions[] = "<a class=\"actions\" href=\"{$this->baseUrl}/submissions/{$data['id']}/compare.html\"><img src=\"/images/icons/zoom.png\" alt=\"\" class=\"icon\" /> Compare versions</a>";
 				}
-				$actions[] = "<a class=\"actions\" href=\"{$this->baseUrl}/new/{$data['id']}/\"><img src=\"/images/icons/page_copy.png\" alt=\"\" class=\"icon\" /> Clone to new assessment</a>";
+				if ($this->isCloneable ($data['form'])) {
+					$actions[] = "<a class=\"actions\" href=\"{$this->baseUrl}/new/{$data['id']}/\"><img src=\"/images/icons/page_copy.png\" alt=\"\" class=\"icon\" /> Clone to new assessment</a>";
+				}
 			}
 			
 			# Show actions, if any
