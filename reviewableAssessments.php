@@ -171,7 +171,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		}
 		
 		# Get the list of available forms, e.g. form_default, form_..., ...
-		$this->availableForms = array_values (preg_grep ('/^form_/', get_class_methods ($this)));
+		$this->availableForms = array_values (preg_grep ('/^form_[a-z]+$/', get_class_methods ($this)));
 		
 		# Get the list of Directors of Studies and determine if the user is a DoS
 		$this->dosList = $this->getDosList ();
