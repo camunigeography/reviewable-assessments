@@ -2666,9 +2666,24 @@ abstract class reviewableAssessments extends frontControllerApplication
 	# CSV download
 	public function downloadcsv ()
 	{
+		# Get the data
+		$data = $this->databaseConnection->select ($this->settings['database'], $this->settings['table'], array (), array (), true, 'id');
+		
+		# Expand dataJSON field if possible, i.e. if only a single form format
+		if (count ($this->availableForms) == 1) {
+			$this->getTemplateLocal ($this->availableForms[0], array ());	// Will populate $this->localFields
+			$localFields = array_keys ($this->localFields);
+			$data = application::expandPackedField ($data, 'dataJson', $localFields);
+		}
+		
+		# Convert to CSV
+		require_once ('csv.php');
+		$csv = csv::dataToCsv ($data);
+		
 		# Serve the CSV file; JSON data will be kept packed in one field
-		$query = "SELECT * FROM {$this->settings['database']}.{$this->settings['table']} ORDER BY id;";
-		$this->databaseConnection->serveCsv ($query, array (), $filenameBase = 'assessments');
+		header ('Content-type: application/octet-stream');
+		header ('Content-Disposition: attachment; filename="' . 'assessments' . '_savedAt' . date ('Ymd-His') . '.csv' . '"');
+		echo $csv;
 	}
 	
 	
