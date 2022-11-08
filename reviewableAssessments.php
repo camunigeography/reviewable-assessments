@@ -2582,7 +2582,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		";
 		
 		# Add the local (form-specific) template; NB $data is provided available for info, to enable logic to be applied if required
-		$html .= $this->getTemplateLocal ($data, $watermark);
+		$html .= $this->getTemplateLocal ($data['form'], $data, $watermark);
 		// NB $this->localFields will now be populated
 		
 		# Surround with a div for styling purposes
@@ -2594,10 +2594,10 @@ abstract class reviewableAssessments extends frontControllerApplication
 	
 	
 	# Function to parse the template for field definitions, returning a simplified version and registering $this->localFields
-	private function getTemplateLocal ($data, $watermark)
+	private function getTemplateLocal ($formName, $data, $watermark = false)
 	{
 		# Load the local template
-		$templateLocal = $this->{$data['form']} ($data, $watermark);	// I.e. form_default ()
+		$templateLocal = $this->{$formName} ($data, $watermark);	// E.g. form_default ()
 		
 		# Convert simple placeholders to extended; this is also helpful to enable quick prototyping since most fields are likely to be standard varchar(255)
 		$templateLocal = preg_replace_callback ('/{([a-z][_a-zA-Z0-9]*)}/', function ($matches) {
