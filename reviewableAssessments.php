@@ -23,6 +23,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'userCallback'				=> NULL,		// NB Currently only a simple public function name supported
 			'collegesCallback'			=> NULL,		// NB Currently only a simple public function name supported
 			'dosListCallback'			=> NULL,		// NB Currently only a simple public function name supported
+			'researchMphils'			=> array (),	// Research MPhil course names, e.g. 'mphil-foo'
 			'usersAutocomplete'			=> false,		// URL of an autocomplete JSON endpoint
 			'emailDomain'				=> 'cam.ac.uk',
 			'directorDescription'		=> NULL,		// E.g. 'XYZ Officer',
@@ -2427,32 +2428,44 @@ abstract class reviewableAssessments extends frontControllerApplication
 			# For MPhil, the supervisor may be course-specific, dependent on the application settings; if so, force the setting; otherwise fall through to the generic Postgraduate behaviour below
 			case 'MPhil':
 				
+				# Check if this is a research MPhil, in which case it should be treated like a PhD (i.e. enter the name of the supervisor, not a specific senior person
+				#!# This is slightly hacky special-case - points to overall need to define *all* courses in the settings against a behaviour macro name, replacing this switch
+				$isResearchMPhil = false;
+				if ($this->settings['researchMphils']) {
+					$userData = $this->getUser ($this->user, $errorHtml /* returned by reference */);
+					if ($userData && (in_array ($userData['course__JOIN__people__courses__reserved'], $this->settings['researchMphils']))) {
+						$isResearchMPhil = true;
+					}
+				}
+				
 				# If the peopleResponsible setting is defined, look for the MPhil courses; otherwise fall-through
 				#!# This is potentially rather brittle, e.g. a space present or extension for other groupings
-				if ($this->settings['peopleResponsible']) {
-					
-					# Define the message and label
-					$reviewer['message'] = "<strong>Your form will be reviewed by the academic representative for your MPhil</strong>, who will discuss it with you. It will also be reviewed subsequently by the {$this->settings['directorDescription']}.";
-					$reviewer['label'] = 'E-mail' . ($viewMode ? '/name' : '') . " of the academic representative for your MPhil";
-					
-					# Obtain the academic representative for the course concerned
-					if ($courseDirector = $this->getMphilRep ($submitterUsername, $courseMoniker /* Returned by reference */)) {
-						$reviewer['placeholder'] = '{seniorPerson}' . "@{$this->settings['emailDomain']}";
-						$reviewer['widget'] = array (
-							'default'	=> $courseDirector,
-							'editable'	=> false,
-						);
-					} else {
-						$this->reportError ("An user {$this->user} on MPhil course {$courseMoniker} was unable to complete their {$this->settings['description']} because that course moniker is not defined in the settings at\n\n{$_SERVER['_SITE_URL']}{$this->baseUrl}/settings.html");
-						$reviewer['placeholder'] = '{seniorPerson}' . "<p class=\"warning\">Due to a technical problem, the system is unable to determine the contact for your course; the Webmaster has been informed and will be in touch shortly.</p><p class=\"warning\">In the meanwhile, please continue with the rest of the form, and use the 'Save and continue' button.</p>";
-						$reviewer['widget'] = array (
-							'default'	=> false,
-							'editable'	=> false,
-							'entities'	=> false,
-						);
+				if (!$isResearchMPhil) {	// A research MPhil will fall through to generic postgraduate handling below
+					if ($this->settings['peopleResponsible']) {
+						
+						# Define the message and label
+						$reviewer['message'] = "<strong>Your form will be reviewed by the academic representative for your MPhil</strong>, who will discuss it with you. It will also be reviewed subsequently by the {$this->settings['directorDescription']}.";
+						$reviewer['label'] = 'E-mail' . ($viewMode ? '/name' : '') . " of the academic representative for your MPhil";
+						
+						# Obtain the academic representative for the course concerned
+						if ($courseDirector = $this->getMphilRep ($submitterUsername, $courseMoniker /* Returned by reference */)) {
+							$reviewer['placeholder'] = '{seniorPerson}' . "@{$this->settings['emailDomain']}";
+							$reviewer['widget'] = array (
+								'default'	=> $courseDirector,
+								'editable'	=> false,
+							);
+						} else {
+							$this->reportError ("An user {$this->user} on MPhil course {$courseMoniker} was unable to complete their {$this->settings['description']} because that course moniker is not defined in the settings at\n\n{$_SERVER['_SITE_URL']}{$this->baseUrl}/settings.html");
+							$reviewer['placeholder'] = '{seniorPerson}' . "<p class=\"warning\">Due to a technical problem, the system is unable to determine the contact for your course; the Webmaster has been informed and will be in touch shortly.</p><p class=\"warning\">In the meanwhile, please continue with the rest of the form, and use the 'Save and continue' button.</p>";
+							$reviewer['widget'] = array (
+								'default'	=> false,
+								'editable'	=> false,
+								'entities'	=> false,
+							);
+						}
+						
+						break;
 					}
-					
-					break;
 				}
 				
 			// Otherwise, fall-through to generic postgraduate handling, i.e. all MPhils enter their supervisor
