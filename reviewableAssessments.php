@@ -1108,7 +1108,10 @@ abstract class reviewableAssessments extends frontControllerApplication
 			#!# If stage2InfoRequired, then the values may not already exist in the JSON data; however, the diffing will work correctly as non-existent value will evaluate to empty, though an offset is through
 			$originalValue = $from[$field];
 			if (!strlen ($originalValue)) {$originalValue = NULL;}
-			#!# For the confirmation widget, this generates "strlen() expects parameter 1 to be string, array given" - due to ultimateForm inconsistency
+			#!# This workaround deals with the confirmation widget, which otherwise generates "strlen() expects parameter 1 to be string, array given" - due to ultimateForm inconsistency
+			if (is_array ($currentValue)) {
+				$currentValue = implode ("\n", $currentValue);		// Treat as flattened for comparison
+			}
 			if (!strlen ($currentValue)) {$currentValue = NULL;}
 			
 			# Compare, adding differences to a list of changes noting the original value
