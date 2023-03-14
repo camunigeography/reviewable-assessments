@@ -626,7 +626,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		
 		# Format special-case fields
 		$replacements['{updatedAt}'] = date ('jS F, Y', strtotime ($submission['updatedAt']));
-		$replacements['{seniorPerson}'] = strip_tags ($this->renderResponsiblePerson ($submission['seniorPerson'], $htmlNoEntities_ignored = array () /* modified by reference */));
+		$replacements['{seniorPerson}'] = strip_tags ($this->renderResponsiblePerson ($submission['seniorPerson']));
 		$replacements['{college}'] = $this->renderCollege ($submission['college']);
 		
 		# Similarly, substitute supported settings values
@@ -2003,7 +2003,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 	
 	
 	# Function to render the responsible person's name/username
-	private function renderResponsiblePerson ($seniorPerson, &$htmlNoEntities)
+	private function renderResponsiblePerson ($seniorPerson, &$htmlNoEntities = array ())
 	{
 		if ($userLookupData = camUniData::lookupUser ($seniorPerson)) {
 			$seniorPerson = htmlspecialchars ($userLookupData['name']) . " &lt;<a href=\"https://www.lookup.cam.ac.uk/person/crsid/{$seniorPerson}/\" target=\"_blank\">{$seniorPerson}</a>&gt;";
