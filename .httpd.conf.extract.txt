@@ -4,14 +4,10 @@
 #   
 #   # Assessments
 #   Include /path/to/reviewable-assessments/.httpd.conf.extract.txt
-#   Use MacroReviewableAssessments "/assessments" "Assessments" "/path/to/reviewable-assessments/:/path/to/php/libraries/"
+#   Use MacroReviewableAssessments "/assessments" "Assessments"
 
 
-<Macro MacroReviewableAssessments $baseUrl $description $includePath>
-	
-	<Location $baseUrl>
-		php_value include_path "$includePath"
-	</Location>
+<Macro MacroReviewableAssessments $baseUrl $description>
 	
 	Use MacroFrontControllerApplication "$baseUrl/" "$description"
 	

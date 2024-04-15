@@ -1,7 +1,6 @@
 <?php
 
 # Abstract class to create an online reviewable assessment system; requires a form definition implementation
-require_once ('frontControllerApplication.php');
 abstract class reviewableAssessments extends frontControllerApplication
 {
 	# Function to assign defaults additional to the general application defaults
@@ -2693,7 +2692,6 @@ abstract class reviewableAssessments extends frontControllerApplication
 		}
 		
 		# Convert to CSV
-		require_once ('csv.php');
 		$csv = csv::dataToCsv ($data);
 		
 		# Serve the CSV file; JSON data will be kept packed in one field

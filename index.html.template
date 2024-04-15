@@ -2,7 +2,7 @@
 
 # Define the settings
 $settings = array (
-	'username' 				=> 'the_username',
+	'username'				=> 'the_username',
 	'password'				=> 'the_password',
 	'userCallback'			=> 'getUser',		// Defined below
 	'collegesCallback'		=> 'getColleges',	// Defined below
@@ -60,7 +60,7 @@ function getDosList ($databaseConnection)
 }
 
 # Load and run the example assessments class, which implements the reviewable assessments class
-require_once ('reviewable-assessments/exampleAssessments.php');
+require_once ('vendor/autoload.php');
 new exampleAssessments ($settings);
 
 ?>
