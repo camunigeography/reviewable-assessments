@@ -215,7 +215,6 @@ abstract class reviewableAssessments extends frontControllerApplication
 		$this->internalFields = array ('id', 'form', 'username', 'status', 'parentId', 'archivedVersion', 'currentReviewer', 'reviewOutcome', 'comments', 'stage2InfoRequired', 'dataJson', 'updatedAt');
 		
 		# Define private data fields, used for hiding in examples mode
-		#!# Move this over to settings, as a callback is unnecessary
 		$this->privateDataFields = $this->privateDataFields ();
 		
 		# Define the review outcomes
@@ -2457,7 +2456,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 								'editable'	=> false,
 							);
 						} else {
-							$this->reportError ("An user {$this->user} on MPhil course {$courseMoniker} was unable to complete their {$this->settings['description']} because that course moniker is not defined in the settings at\n\n{$_SERVER['_SITE_URL']}{$this->baseUrl}/settings.html");
+							$this->reportError ("A user {$this->user} on MPhil course {$courseMoniker} was unable to complete their {$this->settings['description']} because that course moniker is not defined in the settings at\n\n{$_SERVER['_SITE_URL']}{$this->baseUrl}/settings.html");
 							$reviewer['placeholder'] = '{seniorPerson}' . "<p class=\"warning\">Due to a technical problem, the system is unable to determine the contact for your course; the Webmaster has been informed and will be in touch shortly.</p><p class=\"warning\">In the meanwhile, please continue with the rest of the form, and use the 'Save and continue' button.</p>";
 							$reviewer['widget'] = array (
 								'default'	=> false,
