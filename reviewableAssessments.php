@@ -2742,6 +2742,9 @@ abstract class reviewableAssessments extends frontControllerApplication
 			$data['description'] = $data['title'];
 		}
 		
+		# Unpack the detail data
+		$data = $this->unpackSubmissionJson ($data);
+		
 		# Show the form
 		$html .= $this->renderSubmission ($data);
 		
