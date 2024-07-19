@@ -123,6 +123,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			  `additionalCompletionCc` TEXT NULL COMMENT 'Additional e-mail addresses to Cc on completion, for specified groupings',
 			  `introductionHtml` text COMMENT 'Front page introduction text',
 			  `feedbackHtml` TEXT NULL COMMENT 'Feedback page additional note',
+			  `yearsVisibleMax` int DEFAULT '3' COMMENT 'Years visible maximum',
 			  `exemplars` TEXT NULL DEFAULT NULL COMMENT 'Exemplars (list of IDs, one per line)',
 			  `approvalCoverSheetHtml` TEXT NULL DEFAULT NULL COMMENT 'Approval cover sheet template',
 			  `logoImageFile` varchar(255) DEFAULT NULL COMMENT 'Logo image (.png only, max 200px), for cover letter',
@@ -1266,7 +1267,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		$html = '';
 		
 		# Add a status filtering box if listing every submission
-		$sinceMonths = false;
+		$sinceMonths = $this->settings['yearsVisibleMax'] * 12;
 		if ($reviewingMode) {
 			list ($statuses, $sinceMonths) = $this->statusFiltering ($html);
 		}
@@ -1380,6 +1381,29 @@ abstract class reviewableAssessments extends frontControllerApplication
 			list ($statuses, $sinceMonths) = $state;
 		}
 		
+		# Determine available date filter values; this adds in the max visible year (if present, else 9999 months), truncates to that, and then sorts
+		if (!$this->settings['yearsVisibleMax']) {
+			$monthsVisibleMax = 9999;
+			$monthsVisibleMaxLabel = '(no date filter)';
+		} else {
+			$monthsVisibleMax = $this->settings['yearsVisibleMax'] * 12;
+			$monthsVisibleMaxLabel = ($this->settings['yearsVisibleMax'] == 1 ? 'last 12 months' : "last {$this->settings['yearsVisibleMax']} years");
+		}
+		$sinceMonthsOptions = array (
+			1		=> 'last month',
+			3		=> 'last 3 months',
+			6		=> 'last 6 months',	// Default noted above
+			12		=> 'last 12 months',
+			24		=> 'last 2 years',
+			$monthsVisibleMax => $monthsVisibleMaxLabel,
+		);
+		foreach ($sinceMonthsOptions as $months => $label) {
+			if ($months > $monthsVisibleMax) {
+				unset ($sinceMonthsOptions[$months]);
+			}
+		}
+		ksort ($sinceMonthsOptions);
+		
 		# Create a form of checkboxes for each status
 		$form = new form (array (
 			'databaseConnection' => $this->databaseConnection,
@@ -1406,15 +1430,8 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'name'			=> 'sinceMonths',
 			'title'			=> 'Since',
 			'required' 		=> true,
-			'values'		=> array (
-				1		=> 'last month',
-				3		=> 'last 3 months',
-				6		=> 'last 6 months',	// Default noted above
-				12		=> 'last 12 months',
-				24		=> 'last 2 years',
-				9999	=> '(no date filter)',
-			),
-			'default'	=> $sinceMonths,
+			'values'		=> $sinceMonthsOptions,
+			'default'		=> (isSet ($sinceMonthsOptions[$sinceMonths]) ? $sinceMonths : 12),		// The isSet is necessary in case the max number setting has changed and the user still has the old number in their administrators.state value
 		));
 		if ($result = $form->process ($html)) {
 			
@@ -1785,8 +1802,17 @@ abstract class reviewableAssessments extends frontControllerApplication
 	# Function to retrieve an existing submission
 	private function getSubmission ($id)
 	{
+		# Ensure ID is numeric, as we are using a string WHERE clause
+		if (!ctype_digit ($id)) {return false;}
+		
+		# Assemble constraints
+		$where = "id = '{$id}'";	// Check done above with ctype_digit to avoid SQL injection
+		if ($this->settings['yearsVisibleMax']) {
+			$where .= " AND updatedAt >= DATE_SUB(CURDATE(), INTERVAL {$this->settings['yearsVisibleMax']} YEAR)";
+		}
+		
 		# Get the data, or end
-		if (!$submission = $this->databaseConnection->selectOne ($this->settings['database'], $this->settings['table'], array ('id' => $id))) {
+		if (!$submission = $this->databaseConnection->selectOne ($this->settings['database'], $this->settings['table'], $where)) {
 			return false;
 		}
 		
@@ -2681,8 +2707,14 @@ abstract class reviewableAssessments extends frontControllerApplication
 	# CSV download
 	public function downloadcsv ()
 	{
+		# Set constraints
+		$where = '1=1';
+		if ($this->settings['yearsVisibleMax']) {
+			$where .= " AND updatedAt >= DATE_SUB(CURDATE(), INTERVAL {$this->settings['yearsVisibleMax']} YEAR)";
+		}
+		
 		# Get the data
-		$data = $this->databaseConnection->select ($this->settings['database'], $this->settings['table'], array (), array (), true, 'id');
+		$data = $this->databaseConnection->select ($this->settings['database'], $this->settings['table'], $where, array (), true, 'id');
 		
 		# Expand dataJSON field if possible, i.e. if only a single form format
 		if (count ($this->availableForms) == 1) {
@@ -2709,7 +2741,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		
 		# Get the examples
 		$ids = explode ("\n", str_replace ("\r\n", "\n", trim ($this->settings['exemplars'])));
-		$examples = $this->getSubmissions (false, false, false, $ids);
+		$examples = $this->getSubmissions (false, false /* No time limit as personal data is stripped on display anyway */, false, $ids);
 		
 		# Show the listing of examples if no ID supplied
 		if (!$id) {
