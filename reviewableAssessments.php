@@ -14,6 +14,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'database'					=> 'reviewableassessments',
 			'table'						=> 'submissions',
 			'password'					=> NULL,
+			'databaseStrictWhere'		=> true,
 			'authentication'			=> true,
 			'administrators'			=> true,
 			'div'						=> 'reviewableassessments',
