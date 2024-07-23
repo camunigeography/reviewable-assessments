@@ -2518,6 +2518,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 					'autocomplete' => $this->settings['usersAutocomplete'],
 					'autocompleteOptions' => array ('delay' => 0),
 					'regexp' => '^([a-z0-9]+)$',
+					'disallow' => '^' . $this->user . '$',	// Prevent setting self as approver (e.g. as might arise with a PI)
 				);
 				break;
 				
