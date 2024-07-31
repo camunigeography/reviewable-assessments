@@ -34,6 +34,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'descriptionDefault'		=> false,		// Whether to create a default description when creating a new form
 			'descriptionMaxLength'		=> 130,
 			'emailSubjectAddition'		=> array (),	// Token to add, indexed by form type, when e-mailing
+			'recordErasureYears'		=> 5,			// Years after which records will be completely erased from the database, e.g. for data protection compliance; false to retain all records
 		);
 		
 		# Return the defaults
@@ -189,6 +190,9 @@ abstract class reviewableAssessments extends frontControllerApplication
 		$reflector = new ReflectionClass (get_class ($this));	// I.e. child class, e.g. fooAssessments.php
 		$applicationRoot = dirname ($reflector->getFileName ());
 		$this->dataDirectory = $applicationRoot . $this->settings['dataDirectory'];
+		
+		# Run periodic erasure of older records
+		$this->recordErasure ();
 	}
 	
 	
@@ -2808,6 +2812,21 @@ abstract class reviewableAssessments extends frontControllerApplication
 		
 		# Return the HTML
 		return $html;
+	}
+	
+	
+	# Function to run periodic erasure of older records
+	private function recordErasure ()
+	{
+		# Only run if the feature is enabled
+		if (!$this->settings['recordErasureYears']) {return false;}
+		
+		# To avoid unnecessary database load, run only occasionally, on a random page hit
+		if (rand (1, 100) != 1) {return false;}
+		
+		# Erase all old records matching the record erasure years setting
+		$query = "DELETE FROM {$this->settings['table']} WHERE updatedAt < DATE_SUB(CURDATE(), INTERVAL {$this->settings['recordErasureYears']} YEAR);";
+		$this->databaseConnection->query ($query);
 	}
 	
 	
