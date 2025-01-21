@@ -5,7 +5,7 @@
     "license": "GPL-3.0-only",
     "minimum-stability": "stable",
     "require": {
-        "libpurecontent/frontcontrollerapplication": "^1.13",
+        "libpurecontent/frontcontrollerapplication": "^1.13.9",
         "libpurecontent/csv": "^1.5",
         "libpurecontent/application": "^1.9",
         "camunigeography/camunidata": "^2.1",
