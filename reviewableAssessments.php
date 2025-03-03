@@ -2835,6 +2835,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		# Define overrides
 		$dataBindingSettingsOverrides = array (
 			'attributes' => array (
+				'directorUsername'				=> array ('description' => 'If changing this, you should reassign submissions explicitly, to avoid the new Director not seeing pending applications currently sitting with the old Director.'),
 				'approvalCoverSheetHtml'		=> array ('height' => 300, 'heading' => array (3 => 'Approval cover sheet (optional)')),
 				'directorSignatureImageFile'	=> array ('directory' => $this->dataDirectory, 'forcedFileName' => 'directorSignatureImageFile', 'allowedExtensions' => array ('png'), 'preview' => true, ),
 				'logoImageFile'					=> array ('directory' => $this->dataDirectory, 'forcedFileName' => 'logoImageFile',              'allowedExtensions' => array ('png'), 'preview' => true, ),
