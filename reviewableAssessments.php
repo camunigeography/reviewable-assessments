@@ -247,14 +247,14 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'rejected'						=> array (
 				'setStatusTo'					=> 'rejected',
 				'icon' 							=> 'cancel',
-				'text' 							=> "Your {$this->settings['description']} has <strong>not been approved</strong> for the reasons given below. You will need to rethink your proposed project and submit a completely new assessment. If necessary, please visit to discuss the reasons for this.",
+				'text' 							=> "<strong>Not approved</strong>: Your {$this->settings['description']} has not been approved for the reasons given below. You will need to rethink your proposed project and submit a completely new assessment. If necessary, please visit to discuss the reasons for this.",
 				'requireComments'				=> true,
 				'emailSubject'					=> 'not approved',
 			),
 			'changesneeded'					=> array (
 				'setStatusTo'					=> 'reopened',
 				'icon' 							=> 'bullet_error',
-				'text' 							=> 'You need to <strong>make changes</strong> to the form as per the following comments:',	// NB '<strong>make changes</strong> to the form' will get highlighted, so this string must remain
+				'text' 							=> '<strong>Changes needed</strong>: You need to make changes to the form as per the following comments:',	// NB 'make changes to the form' will get highlighted, so this string must remain
 				'requireComments'				=> true,
 				'createArchivalVersion'			=> true,
 				'emailSubject'					=> 'changes needed',
@@ -262,7 +262,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'passup'						=> array (
 				'setStatusTo'					=> 'submitted',
 				'icon' 							=> 'bullet_go',
-				'text'							=> "Your {$this->settings['description']} has been through initial review, and will now <strong>proceed to the next stage of review</strong> by the {$this->settings['directorDescription']}.",
+				'text'							=> "<strong>Next stage</strong>: Your {$this->settings['description']} has been through initial review, and will now proceed to the next stage of review by the {$this->settings['directorDescription']}.",
 				'emailSubject'					=> 'passed to next stage of review',
 				'unavailableToDirector'			=> true,		// Pass-up to self should not be available
 				'setCurrentReviewerToDirector'	=> true,
@@ -270,7 +270,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'stage2'						=> array (
 				'setStatusTo'					=> 'reopened',
 				'icon' 							=> 'bullet_go',
-				'text' 							=> "You now need to <strong>add {$this->settings['stage2Info']}</strong>.",
+				'text' 							=> "<strong>Add {$this->settings['stage2Info']}</strong>: You now need to add {$this->settings['stage2Info']}.",
 				'directorOnly'					=> true,
 				'createArchivalVersion'			=> true,
 				'setStage2InfoRequired'			=> true,
@@ -279,7 +279,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'changesstage2'					=> array (
 				'setStatusTo'					=> 'reopened',
 				'icon' 							=> 'bullet_go',
-				'text' 							=> "You need to <strong>make changes</strong> to the form as per the comments below <strong>and also add {$this->settings['stage2Info']}</strong>.",	// NB '<strong>make changes</strong> to the form' will get highlighted, so these strings must remain
+				'text' 							=> "<strong>Changes needed and add {$this->settings['stage2Info']}</strong>: You need to make changes to the form as per the comments below and also add {$this->settings['stage2Info']}.",	// NB 'make changes to the form' will get highlighted, so this string must remain
 				'directorOnly'					=> true,
 				'requireComments'				=> true,
 				'setStage2InfoRequired'			=> true,
@@ -289,14 +289,14 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'approved'						=> array (
 				'setStatusTo'					=> 'approved',
 				'icon'							=> 'tick',
-				'text' 							=> "Your {$this->settings['description']} has been <strong>approved</strong>, and so you are now permitted to undertake the activity in line with your submission. Many thanks for your careful attention. Please print it out and take it with you.",
+				'text' 							=> "<strong>Approved</strong>: Your {$this->settings['description']} has been approved, and so you are now permitted to undertake the activity in line with your submission. Many thanks for your careful attention. Please print it out and take it with you.",
 				'directorOnly'					=> true,
 				'emailSubject'					=> 'approved',
 			),
 			'parked'						=> array (
 				'setStatusTo'					=> 'parked',
 				'icon'							=> 'control_pause',
-				'text' 							=> "Set this {$this->settings['description']} as permanently <strong>parked</strong>. (This will not send a notification to the user.)",
+				'text' 							=> "<strong>Parked</strong>: Set this {$this->settings['description']} as permanently parked. (This will not send a notification to the user.)",
 				'directorOnly'					=> true,
 				'emailSubject'					=> false,	// i.e. do not send an e-mail
 			),
@@ -2084,7 +2084,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		# Hyperlink texts
 		#!# /submissions/212/ has "Undefined index: in reviewableAssessments.php on [this line]
 		$action = strip_tags ($this->reviewOutcomes[$data['reviewOutcome']]['text']);
-		$action = str_replace ('<strong>make changes</strong> to the form', '<a href="#mainform"><strong>make changes</strong> to the form</a>', $action);
+		$action = str_replace ('make changes to the form', '<a href="#mainform">make changes to the form</a>', $action);
 		$action = str_replace ($this->settings['stage2Info'], "<a href=\"#stage2info\">{$this->settings['stage2Info']}</a>", $action);
 		
 		# Compile the HTML
