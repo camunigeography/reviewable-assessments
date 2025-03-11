@@ -180,6 +180,9 @@ abstract class reviewableAssessments extends frontControllerApplication
 		$this->dosList = $this->getDosList ();
 		$this->userIsDos = (isSet ($this->dosList[$this->user]));
 		
+		# Determine if the user is the Director
+		$this->userIsDirector = ($this->user == $this->settings['directorUsername']);
+		
 		# Determine what submissions, if any, the user has rights to review
 		$this->userHasReviewableSubmissions = $this->getReviewableSubmissionsIds ();
 		
@@ -1183,8 +1186,8 @@ abstract class reviewableAssessments extends frontControllerApplication
 		# Admins can reassign
 		if ($this->userIsAdministrator) {return true;}
 		
-		# The director can reassign
-		if ($this->user == $this->settings['directorUsername']) {return true;}
+		# The Director can reassign
+		if ($this->userisDirector) {return true;}
 		
 		# The current reviewer can reassign
 		if ($this->user == $submission['currentReviewer']) {return true;}
@@ -2835,7 +2838,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		# Define overrides
 		$dataBindingSettingsOverrides = array (
 			'attributes' => array (
-				'directorUsername'				=> array ('description' => 'If changing this, you should reassign submissions explicitly, to avoid the new Director not seeing pending applications currently sitting with the old Director.'),
+				'directorUsername'				=> array ('description' => 'If changing this, you should reassign submissions explicitly, to avoid the new Director not seeing pending applications currently sitting with the old Director. You should also set the Director as an administrator.'),
 				'approvalCoverSheetHtml'		=> array ('height' => 300, 'heading' => array (3 => 'Approval cover sheet (optional)')),
 				'directorSignatureImageFile'	=> array ('directory' => $this->dataDirectory, 'forcedFileName' => 'directorSignatureImageFile', 'allowedExtensions' => array ('png'), 'preview' => true, ),
 				'logoImageFile'					=> array ('directory' => $this->dataDirectory, 'forcedFileName' => 'logoImageFile',              'allowedExtensions' => array ('png'), 'preview' => true, ),
