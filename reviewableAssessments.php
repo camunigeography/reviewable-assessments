@@ -814,7 +814,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		# Filter the review outcomes to those available for the current user
 		$reviewOutcomes = array ();
 		foreach ($this->reviewOutcomes as $id => $reviewOutcome) {
-			if ($reviewOutcome['directorOnly'] && !$this->userIsAdministrator) {continue;}	// Omit Director-only items if not an admin
+			if ($reviewOutcome['directorOnly'] && !$this->userIsDirector) {continue;}	// Omit Director-only items if not Director
 			$reviewOutcomes[$id] = $this->icon ($reviewOutcome['icon']) . ' ' . $reviewOutcome['text'];
 		}
 		
