@@ -23,7 +23,9 @@
 #reviewableassessments table.listing td a {opacity: 0.7;}
 #reviewableassessments table.listing td.title a {opacity: 1;}
 #reviewableassessments table.listing .date {color: gray;}
-#reviewableassessments form .reviewOutcome.radiobuttons input {margin-top: 15px;}
+#reviewableassessments form .outcome.radiobuttons input {margin-right: 10px;}
+#reviewableassessments form .outcome.radiobuttons br {display: block; margin: 10px; content: ' ';}	/* See: https://stackoverflow.com/a/1409753 */
+#reviewableassessments form .outcome.radiobuttons input[type="radio"]:checked + label {background-color: #e5e5fd;}
 #reviewableassessments .newassessment form table tr td:first-child {width: 200px;}
 #reviewableassessments .newassessment form table td {border-left: 0 !important; border-right: 0 !important; padding: 0 10px 20px 0;}
 #reviewableassessments .newassessment form table tr td:first-child {padding-top: 18px; padding-right: 40px;}
