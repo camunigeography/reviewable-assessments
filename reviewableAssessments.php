@@ -259,12 +259,12 @@ abstract class reviewableAssessments extends frontControllerApplication
 				'createArchivalVersion'			=> true,
 				'emailSubject'					=> 'changes needed',
 			),
-			#!# This appears even if the current director is reviewing
 			'passup'						=> array (
 				'setStatusTo'					=> 'submitted',
 				'icon' 							=> 'bullet_go',
 				'text'							=> "Your {$this->settings['description']} has been through initial review, and will now <strong>proceed to the next stage of review</strong> by the {$this->settings['directorDescription']}.",
 				'emailSubject'					=> 'passed to next stage of review',
+				'unavailableToDirector'			=> true,		// Pass-up to self should not be available
 				'setCurrentReviewerToDirector'	=> true,
 			),
 			'stage2'						=> array (
@@ -303,7 +303,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		);
 		
 		# Set undefined flags to false to avoid having to do isSet checks
-		$optionalFlags = array ('requireComments', 'createArchivalVersion', 'setCurrentReviewerToDirector', 'directorOnly', 'setStage2InfoRequired');
+		$optionalFlags = array ('requireComments', 'createArchivalVersion', 'setCurrentReviewerToDirector', 'directorOnly', 'unavailableToDirector', 'setStage2InfoRequired');
 		foreach ($reviewOutcomes as $id => $reviewOutcome) {
 			foreach ($optionalFlags as $optionalFlag) {
 				if (!isSet ($reviewOutcome[$optionalFlag])) {
@@ -815,6 +815,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		$reviewOutcomes = array ();
 		foreach ($this->reviewOutcomes as $id => $reviewOutcome) {
 			if ($reviewOutcome['directorOnly'] && !$this->userIsDirector) {continue;}	// Omit Director-only items if not Director
+			if ($reviewOutcome['unavailableToDirector'] && $this->userIsDirector) {continue;}	// Omit outcomes not available to the Director
 			$reviewOutcomes[$id] = $this->icon ($reviewOutcome['icon']) . ' ' . $reviewOutcome['text'];
 		}
 		
