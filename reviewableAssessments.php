@@ -1188,7 +1188,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		if ($this->userIsAdministrator) {return true;}
 		
 		# The Director can reassign
-		if ($this->userisDirector) {return true;}
+		if ($this->userIsDirector) {return true;}
 		
 		# The current reviewer can reassign
 		if ($this->user == $submission['currentReviewer']) {return true;}
