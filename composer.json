@@ -9,7 +9,7 @@
         "libpurecontent/csv": "^1.5",
         "libpurecontent/application": "^1.9",
         "camunigeography/camunidata": "^2.1",
-        "libpurecontent/ultimateform": "^1.29"
+        "libpurecontent/ultimateform": "^1.31"
     },
     "autoload": {
         "files": ["reviewableAssessments.php"]
