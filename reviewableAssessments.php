@@ -202,8 +202,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		# Determine the conditions; if an administrator, there is no limitation
 		$conditions = array ();
 		if (!$this->userIsAdministrator) {
-			#!# Should this be using currentReviewer now instead?
-			$conditions = array ('seniorPerson' => $this->user);
+			$conditions = array ('currentReviewer' => $this->user);
 		}
 		
 		# Get the data
@@ -748,7 +747,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		}
 		
 		# Ensure the submission has not been handed up to the Director
-		$passedUp = ($submission['currentReviewer'] != $submission['seniorPerson']);	// Whether the submission is now in the hands of the Director
+		$passedUp = ($submission['currentReviewer'] == $this->settings['directorUsername']);	// Whether the submission is now in the hands of the Director
 		if ($passedUp && !$this->userIsAdministrator) {
 			$html = "\n<p>You have already passed this submission up to the {$this->settings['directorDescription']}, so you cannot now review the submission.</p>";
 			return $html;
@@ -1842,8 +1841,9 @@ abstract class reviewableAssessments extends frontControllerApplication
 		# In reviewing mode, check for reviewable submissions; otherwise, limit to the current user
 		if ($reviewingMode) {
 			if (!$this->userIsAdministrator) {
-				$conditions[] = 'seniorPerson = :seniorPerson';
+				$conditions[] = '(seniorPerson = :seniorPerson OR currentReviewer = :currentReviewer)';
 				$preparedStatementValues['seniorPerson'] = $this->user;
+				$preparedStatementValues['currentReviewer'] = $this->user;
 			}
 		} else {
 			$conditions[] = 'username = :username';
@@ -2201,7 +2201,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		
 		# When application first submitted, add in the currentReviewer field, by cloning the seniorPerson to be the currentReviewer
 		if ($isInitialSubmission) {
-			$submission['currentReviewer'] = $submission['seniorPerson'];
+			$submission['currentReviewer'] = $submission['seniorPerson'];	// Same as seniorPerson at start, may be reassigned later or passed-up
 		}
 		
 		# Set the last updated time
