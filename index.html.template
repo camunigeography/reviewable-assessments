@@ -17,12 +17,15 @@ function getUser ($databaseConnection, $userId)
 		
 		Array
 		(
+			[username] => spqr1
+			[name] => Steve Rex
+			[personType] => Academic-related staff
+			[course] => 
 			[isUndergraduate] => 0
-			[isGraduate] => 0
+			[isPostgraduate] => 0
 			[isStaff] => 1
 			[isStaffInternal] => 1
-			[staffType] => Academic-related staff
-			[course__JOIN__people__courses__reserved] => 
+			[triposYear] => 
 		);
 	*/
 }

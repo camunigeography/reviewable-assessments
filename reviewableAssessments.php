@@ -1749,20 +1749,20 @@ abstract class reviewableAssessments extends frontControllerApplication
 	
 	
 	# Function to assign the user type (e.g. Undergraduate/Postgraduate/Research staff); if making changes to submissions.type, this function must be kept in sync
-	#!# Need to migrate the status fields in the logic so they can directly use isUndergraduate/isGraduate/isStaffInternal
+	#!# Need to migrate the status fields in the logic so they can directly use isUndergraduate/isPostgraduate/isStaffInternal
 	private function userType ($userData)
 	{
 		# Undergraduates
 		if ($userData['isUndergraduate']) {return 'Undergraduate';}
 		
 		# Postgraduates
-		if ($userData['isGraduate']) {
+		if ($userData['isPostgraduate']) {
 			
 			# MPhil courses
-			if (preg_match ('/^mphil/', $userData['course__JOIN__people__courses__reserved'])) {return 'MPhil';}
+			if (preg_match ('/^mphil/', $userData['course'])) {return 'MPhil';}
 			
 			# PhD
-			if (preg_match ('/^phd/', $userData['course__JOIN__people__courses__reserved'])) {return 'PhD';}
+			if (preg_match ('/^phd/', $userData['course'])) {return 'PhD';}
 			
 			# Generic postgraduate
 			return 'Other';
@@ -1772,13 +1772,13 @@ abstract class reviewableAssessments extends frontControllerApplication
 		if ($userData['isStaff'] && $userData['isStaffInternal']) {
 			
 			# Academic related
-			if (preg_match ('/^Academic-related/', $userData['staffType'])) {return 'Other';}
+			if (preg_match ('/^Academic-related/', $userData['personType'])) {return 'Other';}
 			
 			# Academic staff
-			if (preg_match ('/^Academic/', $userData['staffType'])) {return 'Academic staff';}
+			if (preg_match ('/^Academic/', $userData['personType'])) {return 'Academic staff';}
 			
 			# Research staff
-			if (preg_match ('/^Research/', $userData['staffType'])) {return 'Research staff';}
+			if (preg_match ('/^Research/', $userData['personType'])) {return 'Research staff';}
 		}
 		
 		# Otherwise, use other
@@ -2466,7 +2466,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 				$isResearchMPhil = false;
 				if ($this->settings['researchMphils']) {
 					$userData = $this->getUser ($this->user, $errorHtml /* returned by reference */);
-					if ($userData && (in_array ($userData['course__JOIN__people__courses__reserved'], $this->settings['researchMphils']))) {
+					if ($userData && (in_array ($userData['course'], $this->settings['researchMphils']))) {
 						$isResearchMPhil = true;
 					}
 				}
@@ -2559,7 +2559,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		# Determine the course of the user
 		#!# This is rather hacky, but the problem is that userType() has no notion of a sub-type, so the course is not stored as persistent data
 		$userData = $this->getUser ($submitterUsername);
-		$courseMoniker = $userData['course__JOIN__people__courses__reserved'];
+		$courseMoniker = $userData['course'];
 		
 		# Ensure the course director is defined; if not, report the problem
 		if (!isSet ($courseRep[$courseMoniker])) {
