@@ -27,7 +27,6 @@ function getUser ($databaseConnection, $username)
 			[isPostgraduate] => 0
 			[isStaff] => 1
 			[isStaffInternal] => 1
-			[triposYear] => 
 		);
 	*/
 }
