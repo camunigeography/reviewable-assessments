@@ -10,7 +10,7 @@ $settings = array (
 );
 
 # Callback function to get details of a user
-function getUser ($databaseConnection, $userId)
+function getUser ($databaseConnection, $username)
 {
 	/*	
 		Must return a datastructure like this; this example shows a member of Academic-related staff, with the type shown and appropriate booleans:
@@ -19,9 +19,11 @@ function getUser ($databaseConnection, $userId)
 		(
 			[username] => spqr1
 			[name] => Steve Rex
-			[personType] => Academic-related staff
+			[personTypeMoniker] => academicrelated
 			[course] => 
 			[isUndergraduate] => 0
+			[isMPhilStudent] => 0
+			[isPhdStudent] => 0
 			[isPostgraduate] => 0
 			[isStaff] => 1
 			[isStaffInternal] => 1

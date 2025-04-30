@@ -1749,39 +1749,18 @@ abstract class reviewableAssessments extends frontControllerApplication
 	
 	
 	# Function to assign the user type (e.g. Undergraduate/Postgraduate/Research staff); if making changes to submissions.type, this function must be kept in sync
-	#!# Need to migrate the status fields in the logic so they can directly use isUndergraduate/isPostgraduate/isStaffInternal
 	private function userType ($userData)
 	{
-		# Undergraduates
+		# Student types
 		if ($userData['isUndergraduate']) {return 'Undergraduate';}
+		if ($userData['isMPhilStudent']) {return 'MPhil';}
+		if ($userData['isPhdStudent']) {return 'PhD';}
 		
-		# Postgraduates
-		if ($userData['isPostgraduate']) {
-			
-			# MPhil courses
-			if (preg_match ('/^mphil/', $userData['course'])) {return 'MPhil';}
-			
-			# PhD
-			if (preg_match ('/^phd/', $userData['course'])) {return 'PhD';}
-			
-			# Generic postgraduate
-			return 'Other';
-		}
+		# Staff types
+		if ($userData['personTypeMoniker'] == 'academic') {return 'Academic staff';}
+		if ($userData['personTypeMoniker'] == 'research') {return 'Research staff';}
 		
-		# Staff (internal)
-		if ($userData['isStaff'] && $userData['isStaffInternal']) {
-			
-			# Academic related
-			if (preg_match ('/^Academic-related/', $userData['personType'])) {return 'Other';}
-			
-			# Academic staff
-			if (preg_match ('/^Academic/', $userData['personType'])) {return 'Academic staff';}
-			
-			# Research staff
-			if (preg_match ('/^Research/', $userData['personType'])) {return 'Research staff';}
-		}
-		
-		# Otherwise, use other
+		# Otherwise, use other, e.g. unknown postgraduate type, academic-related, etc.
 		return 'Other';
 	}
 	
@@ -2104,6 +2083,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 	
 	
 	# Function to get the user
+	#!# Currently this is being called three times on the editing page
 	private function getUser ($userId, &$errorHtml = false)
 	{
 		# Get the data and return it
