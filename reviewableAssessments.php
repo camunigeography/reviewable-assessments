@@ -742,7 +742,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		
 		# Ensure the user has reviewing rights
 		if (!$this->userCanReviewSubmission ($submission['id'])) {
-			$html = "\n<p>You do not appear to have rights to review this submission.</p>";
+			$html = "\n<p>You do not appear to have rights to review this <a href=\"{$this->baseUrl}/submissions/{$submission['id']}/\">submission</a>.</p>";
 			return $html;
 		}
 		
