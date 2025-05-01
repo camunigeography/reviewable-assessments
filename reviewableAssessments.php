@@ -472,9 +472,9 @@ abstract class reviewableAssessments extends frontControllerApplication
 			return false;
 		}
 		
-		# Ensure this ID is owned by this user
+		# Ensure the user can view the submission
 		if ($submission['username'] != $this->user) {
-			if (!$this->userCanReviewSubmission ($id)) {
+			if (!$this->userCanReviewSubmission ($id) && ($this->user != $submission['seniorPerson'])) {
 				$html .= "\n<p>You do not appear to have rights to view the specified submission. Please check the URL and try again.</p>";
 				echo $html;
 				return false;
