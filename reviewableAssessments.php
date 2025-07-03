@@ -35,6 +35,9 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'descriptionMaxLength'		=> 130,
 			'emailSubjectAddition'		=> array (),	// Token to add, indexed by form type, when e-mailing
 			'recordErasureYears'		=> 5,			// Years after which records will be completely erased from the database, e.g. for data protection compliance; false to retain all records
+			'size'						=> 60,
+			'cols'						=> 50,
+			'rows'						=> 4,
 		);
 		
 		# Return the defaults
@@ -2287,9 +2290,9 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'formCompleteText'	=> false,
 			'display' => 'template',
 			'displayTemplate' => $template,
-			'size' => 60,
-			'cols' => 50,
-			'rows' => 4,
+			'size' => $this->settings['size'],
+			'cols' => $this->settings['cols'],
+			'rows' => $this->settings['rows'],
 			'unsavedDataProtection' => true,
 			'saveButton' => true,
 			'div' => false,
