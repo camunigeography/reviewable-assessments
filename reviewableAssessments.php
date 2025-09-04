@@ -713,7 +713,8 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'forceAssociative'	=> true,
 			'values'			=> array ('Yes, delete this submission permanently'),
 		));
-		if (!$result = $form->process ($html)) {
+		if (!$form->process ($html)) {
+			#!# If there is no director username, e.g. deleting a newly-started application, this causes camUniData::lookupUser to get a Lookup API call error as there is no CRSID supplied
 			$html .= $this->viewSubmission ($submission, true);
 			return $html;
 		}
