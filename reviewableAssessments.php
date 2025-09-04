@@ -27,6 +27,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'usersAutocomplete'			=> false,		// URL of an autocomplete JSON endpoint
 			'emailDomain'				=> 'cam.ac.uk',
 			'directorDescription'		=> NULL,		// E.g. 'XYZ Officer',
+			'reviewerGuidance'			=> false,		// Guidance to a reviewer that will appear on the review page
 			'pdfStylesheets'			=> array (),
 			'stage2Info'				=> false,		// To enable stage 2 info, define a string describing the information to be added, e.g. 'additional information'
 			'types'						=> array ('Undergraduate', 'MPhil', 'PhD', 'Research staff', 'Academic staff', 'Other'),	// In order of appearance in the form and for the exemplars listing
@@ -829,6 +830,9 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'unsavedDataProtection' => true,
 		));
 		$form->heading ('p', 'Please review the submission below and submit the form. This will e-mail your decision, and a link to this page, to the original submitter.');
+		if ($this->settings['reviewerGuidance']) {
+			$form->heading ('p', '<strong><img src="/images/general/information.png" class="icon" /> ' . htmlspecialchars ($this->settings['reviewerGuidance']) . '</strong>');
+		}
 		$form->radiobuttons (array (
 		    'name'		=> 'outcome',
 		    'title'		=> 'Review outcome',
