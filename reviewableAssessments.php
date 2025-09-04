@@ -1536,7 +1536,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		$userData = $this->getUser ($this->user, $errorHtml /* returned by reference */);
 		
 		# End if no user data
-		if (!$userData && !$this->userIsAdministrator) {	// Admins can see the form
+		if (!$userData && !$this->userIsAdministrator) {	// Admins can see the form (though if they would not ordinarily have access, this will mean their name/e-mail is missing, causing the form to be unsubmittable)
 			if ($errorHtml) {
 				$html = $errorHtml;
 			} else {
