@@ -232,6 +232,18 @@ abstract class reviewableAssessments extends frontControllerApplication
 		# Define statuses; the keys here must be kept in sync with the status field's ENUM specification
 		$this->statuses = $this->statuses ();
 		
+		# Enforce that the Director must be an admin
+		if (!array_key_exists ($this->settings['directorUsername'], $this->administrators)) {
+			if ($this->userIsAdministrator) {
+				echo "\n<p class=\"warning\">This system cannot run as there is a problem: the Director username must also be set up as an Administrator.<br />Please fix this in the <a href=\"{$this->baseUrl}/settings.html\">settings</a> / <a href=\"{$this->baseUrl}/settings.html\">administrators</a> page.</p>";
+			} else {
+				echo "\n<p class=\"warning\">This system cannot run as there is a problem which the site administrator must fix.</p>";
+			}
+			if (!in_array ($this->action, array ('settings', 'administrators'))) {
+				return false;
+			}
+		}
+		
 	}
 	
 	
@@ -753,6 +765,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		
 		# Ensure the submission has not been handed up to the Director
 		$passedUp = ($submission['currentReviewer'] == $this->settings['directorUsername']);	// Whether the submission is now in the hands of the Director
+		#!# This userIsAdministrator check is very unclear - if an application has gone to the Director directly (e.g. a main submission by a member of staff), if the director is not set as an admin, the Director will get the message below incorrectly
 		if ($passedUp && !$this->userIsAdministrator) {
 			$html = "\n<p>You have already passed this submission up to the {$this->settings['directorDescription']}, so you cannot now review the submission.</p>";
 			return $html;
