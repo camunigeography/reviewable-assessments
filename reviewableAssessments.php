@@ -1180,7 +1180,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		
 		# Update the record
 		$update = array (
-			'seniorPerson'		=> $newReviewer,
+			// seniorPerson is left unchanged, which is safe at this stage because the submission is known to be in the submitted state, and therefore the active concern is about reviewing
 			'currentReviewer'	=> $newReviewer,
 			'updatedAt'			=> 'NOW()',	// Database library will convert from string to SQL keyword
 		);
@@ -1229,6 +1229,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 			'formCompleteText' => false,
 		));
 		$form->heading ('p', 'You can reassign the reviewer using this form. They will be informed by e-mail. (The original submitter will not be informed.)');
+		$form->heading ('p', "This will not change the 'Person responsible' shown below, only the person the reviewing should currently be with.");
 		$form->input (array (
 			'name'					=> 'username',
 			'title'					=> 'Reassign the reviewer to',
