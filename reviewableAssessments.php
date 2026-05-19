@@ -2204,7 +2204,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		
 		# When application first submitted, add in the currentReviewer field, by cloning the seniorPerson to be the currentReviewer
 		if ($isInitialSubmission) {
-			$submission['currentReviewer'] = $submission['seniorPerson'];	// Same as seniorPerson at start, may be reassigned later or passed-up
+			$submission['currentReviewer'] = $submission['seniorPerson'];	// Same as seniorPerson at start, may be reassigned later or passed-up; seniorPerson is never changed
 		}
 		
 		# Set the last updated time
