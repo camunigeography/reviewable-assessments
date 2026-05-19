@@ -1331,7 +1331,8 @@ abstract class reviewableAssessments extends frontControllerApplication
 			}
 			$isSubmitted = ($submission['status'] == 'submitted');
 			$icon = $this->statuses[$submission['status']]['icon'];
-			$table[$id]['title'] = "\n<a href=\"{$this->baseUrl}/submissions/{$id}/\"><img src=\"/images/icons/{$icon}.png\" alt=\"Add\" class=\"icon\" /> " . htmlspecialchars ($submission['description']) . '</a>';
+			$statusDescription = ucfirst ($submission['status']);
+			$table[$id]['title'] = "\n<a href=\"{$this->baseUrl}/submissions/{$id}/\"><img src=\"/images/icons/{$icon}.png\" alt=\"\" title=\"{$statusDescription}\" class=\"icon\" /> " . htmlspecialchars ($submission['description']) . '</a>';
 			if (method_exists ($this, 'choiceForm')) {
 				$colour = (isSet ($this->formColours[$submission['form']]) ? $this->formColours[$submission['form']] : false);
 				$table[$id]['form'] = ($colour ? "<span style=\"color: {$colour};\">" : '') . ucfirst (preg_replace ('/^form_/', '', $submission['form'])) . ($colour ? '</span>' : '');
