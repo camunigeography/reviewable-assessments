@@ -616,12 +616,22 @@ abstract class reviewableAssessments extends frontControllerApplication
 		$introductionHtml = "\n<p class=\"comment\">Printed at " . date ('g:ia, jS F Y') . " from {$_SERVER['_SITE_URL']}{$this->baseUrl}/submissions/{$id}/</p>\n<hr />";
 		
 		# Compile the HTML
-		$pdfHtml  = $stylesheetsHtml;
-		$pdfHtml .= $coverSheetHtml;
-		$pdfHtml .= $introductionHtml;
-		$pdfHtml .= "\n<div id=\"{$this->settings['div']}\">";
-		$pdfHtml .= $html;
-		$pdfHtml .= "\n</div>";
+		$pdfHtml  = '<!DOCTYPE html>';
+		$pdfHtml .= "\n<html>";
+		$pdfHtml .= "\n\t<head>";
+		$pdfHtml .= "\n\n" . $stylesheetsHtml;
+		$pdfHtml .= "\n\t</head>";
+		$pdfHtml .= "\n\t<body>";
+		$pdfHtml .= "\n\n" . $coverSheetHtml;
+		$pdfHtml .= "\n\n" . $introductionHtml;
+		$pdfHtml .= "\n\t\t<div id=\"{$this->settings['div']}\">";
+		$pdfHtml .= "\n\n" . $html;
+		$pdfHtml .= "\n\t\t</div>";
+		$pdfHtml .= "\n\t</body>";
+		$pdfHtml .= "\n</html>";
+		
+		//DEBUG:
+		//ob_clean (); flush (); echo $pdfHtml; die;
 		
 		# Serve the HTML and terminate all execution
 		application::html2pdf ($pdfHtml, "assessment{$id}.pdf");
