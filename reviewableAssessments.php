@@ -620,6 +620,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		$pdfHtml .= "\n<html>";
 		$pdfHtml .= "\n\t<head>";
 		$pdfHtml .= "\n\n" . $stylesheetsHtml;
+		$pdfHtml .= "\n\n" . '<style>body {box-sizing: border-box; padding: 15mm;}</style>';
 		$pdfHtml .= "\n\t</head>";
 		$pdfHtml .= "\n\t<body>";
 		$pdfHtml .= "\n\n" . $coverSheetHtml;
