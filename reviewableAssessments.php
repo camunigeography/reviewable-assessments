@@ -2805,7 +2805,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 	}
 	
 	
-	# Functino to create a listing of examples
+	# Function to create a listing of examples
 	private function examplesListing ($examples)
 	{
 		# Group by type
@@ -2843,7 +2843,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		}
 		
 		# Run the feedback form
-		parent::feedback ();
+		echo parent::feedback ();
 	}
 	
 	
@@ -2861,7 +2861,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 		);
 		
 		# Run the main settings system with the overriden attributes
-		return parent::settings ($dataBindingSettingsOverrides);
+		echo parent::settings ($dataBindingSettingsOverrides);
 	}
 }
 
