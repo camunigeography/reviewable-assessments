@@ -3,6 +3,21 @@
 # Abstract class to create an online reviewable assessment system; requires a form definition implementation
 abstract class reviewableAssessments extends frontControllerApplication
 {
+	# Class properties
+	private $availableForms;
+	private $dosList;
+	private $userIsDos;
+	private $userIsDirector;
+	private $userHasReviewableSubmissions;
+	private $userIsReviewer;
+	private $dataDirectory;
+	private $internalFields;
+	private $privateDataFields;
+	private $reviewOutcomes;
+	private $statuses;
+	
+	
+	
 	# Function to assign defaults additional to the general application defaults
 	public function defaults ()
 	{
