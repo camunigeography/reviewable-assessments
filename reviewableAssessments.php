@@ -2849,7 +2849,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 	public function feedback ($id_ignored = NULL, $error_ignored = NULL, $echoHtml = true)
 	{
 		# Add message, if required
-		if (trim ($this->settings['feedbackHtml'])) {
+		if ($this->settings['feedbackHtml'] && trim ($this->settings['feedbackHtml'])) {
 			echo "<div class=\"warningbox\">
 				<br />
 				{$this->settings['feedbackHtml']}
