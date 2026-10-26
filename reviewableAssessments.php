@@ -15,6 +15,7 @@ abstract class reviewableAssessments extends frontControllerApplication
 	private $privateDataFields;
 	private $reviewOutcomes;
 	private $statuses;
+	private $localFields;
 	
 	
 	
